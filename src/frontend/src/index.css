@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.625rem;
+        
+        /* Scrapbook stationery theme - Light mode */
+        --background: 0.97 0.02 60;
+        --foreground: 0.25 0.02 30;
+        --card: 0.99 0.01 60;
+        --card-foreground: 0.25 0.02 30;
+        --popover: 0.99 0.01 60;
+        --popover-foreground: 0.25 0.02 30;
+        --primary: 0.25 0.02 30;
+        --primary-foreground: 0.99 0.01 60;
+        --secondary: 0.94 0.02 80;
+        --secondary-foreground: 0.25 0.02 30;
+        --muted: 0.94 0.02 80;
+        --muted-foreground: 0.55 0.01 40;
+        --accent: 0.94 0.02 80;
+        --accent-foreground: 0.25 0.02 30;
+        --destructive: 0.577 0.245 27.325;
+        --destructive-foreground: 0.99 0.01 60;
+        --border: 0.88 0.02 70;
+        --input: 0.88 0.02 70;
+        --ring: 0.65 0.15 25;
+        
+        /* Custom scrapbook colors */
+        --cream: 0.97 0.02 60;
+        --peach: 0.92 0.05 50;
+        --sage: 0.75 0.08 140;
+        --coral: 0.65 0.15 25;
+        --coral-dark: 0.55 0.18 25;
+        --charcoal: 0.25 0.02 30;
+        
+        --sidebar: 0.99 0.01 60;
+        --sidebar-foreground: 0.25 0.02 30;
+        --sidebar-primary: 0.65 0.15 25;
+        --sidebar-primary-foreground: 0.99 0.01 60;
+        --sidebar-accent: 0.94 0.02 80;
+        --sidebar-accent-foreground: 0.25 0.02 30;
+        --sidebar-border: 0.88 0.02 70;
+        --sidebar-ring: 0.65 0.15 25;
+    }
+
+    .dark {
+        --background: 0.20 0.02 30;
+        --foreground: 0.97 0.02 60;
+        --card: 0.25 0.02 30;
+        --card-foreground: 0.97 0.02 60;
+        --popover: 0.25 0.02 30;
+        --popover-foreground: 0.97 0.02 60;
+        --primary: 0.88 0.02 70;
+        --primary-foreground: 0.25 0.02 30;
+        --secondary: 0.30 0.02 35;
+        --secondary-foreground: 0.97 0.02 60;
+        --muted: 0.30 0.02 35;
+        --muted-foreground: 0.65 0.01 50;
+        --accent: 0.35 0.02 40;
+        --accent-foreground: 0.97 0.02 60;
+        --destructive: 0.704 0.191 22.216;
+        --destructive-foreground: 0.25 0.02 30;
+        --border: 0.35 0.02 40;
+        --input: 0.35 0.02 40;
+        --ring: 0.65 0.15 25;
+        
+        --cream: 0.30 0.02 35;
+        --peach: 0.35 0.05 45;
+        --sage: 0.45 0.08 140;
+        --coral: 0.65 0.15 25;
+        --coral-dark: 0.55 0.18 25;
+        --charcoal: 0.85 0.02 60;
+        
+        --sidebar: 0.25 0.02 30;
+        --sidebar-foreground: 0.97 0.02 60;
+        --sidebar-primary: 0.65 0.15 25;
+        --sidebar-primary-foreground: 0.97 0.02 60;
+        --sidebar-accent: 0.30 0.02 35;
+        --sidebar-accent-foreground: 0.97 0.02 60;
+        --sidebar-border: 0.35 0.02 40;
+        --sidebar-ring: 0.65 0.15 25;
+    }
+
+    * {
+        @apply border-border;
+    }
+    
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+}
+
+@layer utilities {
+    .bg-cream {
+        background-color: oklch(var(--cream));
+    }
+    .bg-peach {
+        background-color: oklch(var(--peach));
+    }
+    .bg-sage {
+        background-color: oklch(var(--sage));
+    }
+    .bg-coral {
+        background-color: oklch(var(--coral));
+    }
+    .bg-coral-dark {
+        background-color: oklch(var(--coral-dark));
+    }
+    .text-charcoal {
+        color: oklch(var(--charcoal));
+    }
+    .text-coral {
+        color: oklch(var(--coral));
+    }
+    .text-sage {
+        color: oklch(var(--sage));
+    }
+    .border-coral {
+        border-color: oklch(var(--coral));
+    }
+    .border-sage {
+        border-color: oklch(var(--sage));
+    }
+    .fill-coral {
+        fill: oklch(var(--coral));
+    }
+    
+    .font-handwriting {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+}

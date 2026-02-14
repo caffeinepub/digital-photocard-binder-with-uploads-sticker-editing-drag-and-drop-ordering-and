@@ -1,0 +1,190 @@
+{
+  "kind": "build_request",
+  "title": "Digital photocard binder with uploads, sticker editing, drag-and-drop ordering, and binder customization",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Implement Internet Identity sign-in and ensure all photocard binder data is stored and fetched per signed-in user (keyed by the user Principal).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Create an app that allows user to store collections of photocard images."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A signed-out user is prompted to sign in before creating/viewing binders or cards.",
+        "A signed-in user only sees their own binders/collections and cards; different Principals do not share data.",
+        "Sign-in state is reflected in the UI (e.g., signed-in indicator and sign-out action)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Create backend data models and API methods to manage binder collections: create/list/update/delete binders; create/list/update/delete photocards within a binder; persist binder and card ordering.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "store collections of photocard images",
+          "They can change order by drag and drop."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend supports CRUD for binders owned by a Principal.",
+        "Backend supports CRUD for photocards within a binder owned by a Principal.",
+        "Each binder stores an ordered list of card IDs (or an explicit order index) and returns cards in that order.",
+        "Reordering updates are persisted and reflected on subsequent fetch."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Implement image upload flow for photocards: allow users to add a photocard by uploading an image file; store the image content in a way that can be retrieved and displayed later.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "upload their own pic",
+          "or just their own images"
+        ]
+      },
+      "acceptanceCriteria": [
+        "User can upload a common image type (at least PNG and JPEG) to create a new photocard.",
+        "Uploaded images can be retrieved after page reload and displayed in the binder view.",
+        "Upload errors (unsupported type, too large) are handled with clear English user-facing messages.",
+        "Each uploaded image is associated with the correct card and correct signed-in user."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add an in-browser photocard editor that lets users place and manipulate stickers on top of their uploaded image and save the edited result as that card’s display image.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "add stickers"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Editor supports selecting a sticker from a built-in sticker tray.",
+        "User can place multiple stickers; move, scale, rotate, and delete individual stickers.",
+        "User can save changes and the edited result becomes the card’s displayed image.",
+        "User can cancel editing without changing the stored card image."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Implement drag-and-drop reordering of photocards within a binder, and persist the new order to the backend.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "They can change order by drag and drop."
+        ]
+      },
+      "acceptanceCriteria": [
+        "User can drag a card thumbnail/tile to reorder within the binder view.",
+        "The new order is immediately reflected in the UI after dropping.",
+        "The new order is saved and remains correct after refresh/reopen.",
+        "Reordering does not affect cards in other binders."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Implement binder appearance customization: allow users to change binder theme properties (e.g., cover color/texture, page background style, and card frame style) and persist these settings per binder.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "They can customise the look of their binder like a digital photocard binder"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each binder has editable theme settings (at minimum: cover style and page/background style).",
+        "Theme settings are persisted and restored when the binder is reopened.",
+        "Changing theme updates the binder UI immediately (preview behavior)."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Create core UI screens: (1) Binder Library (list/create/open/delete binders), (2) Binder View (grid/list of cards with reorder), (3) Add Card (upload), (4) Edit Card (sticker editor), (5) Binder Settings (theme customization).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "User can navigate between all listed screens from within the app UI.",
+        "Binder Library shows all binders for the signed-in user and supports creating a new binder with a name.",
+        "Binder View shows cards with thumbnails, supports adding a card, opening editor, deleting a card, and reordering.",
+        "All user-facing text is in English."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Apply a coherent, distinctive visual theme across the app UI: choose a warm ‘scrapbook stationery’ style (cream paper backgrounds, muted coral + sage accents, subtle grain/texture, rounded corners, playful but readable typography) and apply it consistently to layout, buttons, cards, and dialogs.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The app has a consistent scrapbook/stationery look and feel across all main screens.",
+        "Theme avoids a predominantly blue/purple palette.",
+        "UI remains readable and accessible (sufficient contrast for primary text and controls)."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add generated static image assets (binder/page textures and a starter sticker set) under frontend/public/assets/generated and use them in the binder customization UI and sticker tray.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "add stickers",
+          "customise the look of their binder"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Generated images exist under frontend/public/assets/generated and load correctly in the UI (no backend routing for these assets).",
+        "Sticker tray uses the generated sticker PNGs.",
+        "Binder/page theme previews can use the generated texture assets."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor (all Motoko logic in backend/main.mo).",
+    "Do not edit files under frontend/src/components/ui or other immutable paths provided by the system; compose them from elsewhere instead.",
+    "Use English for all user-facing text."
+  ],
+  "nonGoals": [
+    "No real-time collaborative editing or multi-user shared binders.",
+    "No third-party auth providers other than Internet Identity.",
+    "No external database or external image hosting/CDN integration.",
+    "No advanced photo editing beyond sticker overlay (e.g., filters, background removal) unless explicitly added later."
+  ],
+  "imageRequirements": {
+    "required": [
+      "Scrapbook-style binder cover texture with subtle grain and stitched edges (binder-cover-texture.dim_2048x2048.png)",
+      "Cream paper page background texture with light grain (page-paper-texture.dim_2048x2048.png)",
+      "Set of 6 cute sticker illustrations on transparent backgrounds (star, heart, sparkle, tape strip, flower, smiley) (stickers-pack-01.dim_1024x1024.png)"
+    ],
+    "edits": []
+  }
+}

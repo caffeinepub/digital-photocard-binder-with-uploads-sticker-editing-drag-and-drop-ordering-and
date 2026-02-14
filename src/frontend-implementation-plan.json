@@ -1,0 +1,259 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Digital Photocard Binder (frontend)",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Add Internet Identity sign-in UX, enforce signed-in access to binder data, and show signed-in state with sign-out; ensure per-user UI scoping and profile setup.",
+      "acceptanceCriteria": [
+        "A signed-out user is prompted to sign in before creating/viewing binders or cards.",
+        "A signed-in user only sees their own binders/collections and cards; different Principals do not share data.",
+        "Sign-in state is reflected in the UI (e.g., signed-in indicator and sign-out action)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "create",
+          "description": "Create the app shell with an authenticated gate (show a sign-in screen when not authenticated), top bar showing signed-in state + sign-out, and wiring for the core screens navigation. Use the authorization component’s frontend guidance to drive Internet Identity + profile setup flow; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Adjust actor usage integration so UI can reliably determine authenticated vs guest mode and avoid fetching personal binder data when signed out; ensure logout clears cached app data via React Query coordination."
+        },
+        {
+          "path": "frontend/src/hooks/useInternetIdentity.ts",
+          "operation": "modify",
+          "description": "Ensure login/logout flows cleanly update UI state and support a signed-in indicator; on logout, enable downstream consumers to clear cached binder/profile data (paired with React Query clearing)."
+        },
+        {
+          "path": "frontend/src/features/auth/LoginPanel.tsx",
+          "operation": "create",
+          "description": "Create a dedicated sign-in panel that uses Internet Identity (login/logout), shows current state, and integrates with profile prompting. Use the authorization component’s recommended Login component patterns; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/auth/ProfileSetupModal.tsx",
+          "operation": "create",
+          "description": "Create a modal dialog that prompts for a display name the first time a principal logs in, calling getCallerUserProfile/saveCallerUserProfile, and avoiding modal flash. Use the authorization component’s profile setup guidance; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/auth/useCurrentUserProfile.ts",
+          "operation": "create",
+          "description": "Add a React Query hook to fetch getCallerUserProfile with proper loading/isFetched behavior tied to actor availability, and helpers for saving profile and clearing cached profile on logout. Use the authorization component’s query pattern guidance; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Implement photocard image upload UI with validation and progress, using blob-storage ExternalBlob to persist and display images after reload.",
+      "acceptanceCriteria": [
+        "User can upload a common image type (at least PNG and JPEG) to create a new photocard.",
+        "Uploaded images can be retrieved after page reload and displayed in the binder view.",
+        "Upload errors (unsupported type, too large) are handled with clear English user-facing messages.",
+        "Each uploaded image is associated with the correct card and correct signed-in user."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/screens/AddCardScreen.tsx",
+          "operation": "create",
+          "description": "Create the Add Card screen with file input (PNG/JPEG), size/type validation, clear English errors, upload progress, and submission to backend addPhotocard. Use the blob-storage ExternalBlob (fromBytes, withUploadProgress, getDirectURL) for upload/display; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/cards/imageValidation.ts",
+          "operation": "create",
+          "description": "Add shared helpers for image type/size validation and user-facing error mapping (English)."
+        },
+        {
+          "path": "frontend/src/features/cards/useAddPhotocard.ts",
+          "operation": "create",
+          "description": "Add a React Query mutation hook for adding a photocard (upload blob + metadata), including optimistic UI hooks (optional) and query invalidation for binder refresh. Use the blob-storage ExternalBlob upload pattern; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/BinderViewScreen.tsx",
+          "operation": "create",
+          "description": "Ensure binder view renders photocard thumbnails using ExternalBlob.getDirectURL for persisted images, and handles missing/loading states. Use the blob-storage ExternalBlob display guidance; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add an in-browser sticker overlay editor for a photocard with save/cancel behavior and editable sticker transforms.",
+      "acceptanceCriteria": [
+        "Editor supports selecting a sticker from a built-in sticker tray.",
+        "User can place multiple stickers; move, scale, rotate, and delete individual stickers.",
+        "User can save changes and the edited result becomes the card’s displayed image.",
+        "User can cancel editing without changing the stored card image."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/screens/EditCardScreen.tsx",
+          "operation": "create",
+          "description": "Create the Edit Card screen with a canvas-based editor: base photo as background + multiple sticker layers with select/move/scale/rotate/delete and cancel/save actions. Wire sticker tray to the generated sticker pack asset at frontend/public/assets/generated/stickers-pack-01.dim_1024x1024.png; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/editor/stickerModel.ts",
+          "operation": "create",
+          "description": "Add editor state model/types and transform math utilities (position/scale/rotation, hit testing, selection, delete)."
+        },
+        {
+          "path": "frontend/src/features/editor/stickerTray.ts",
+          "operation": "create",
+          "description": "Define the built-in sticker set sourced from the single generated sticker sheet (front-end slicing coordinates and labels for star/heart/sparkle/tape/flower/smiley) and provide metadata for rendering in the tray; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/cards/editedImageCache.ts",
+          "operation": "create",
+          "description": "Implement a per-user, per-card edited-image cache (e.g., local storage/indexedDB) that stores the exported edited PNG and is cleared on logout; used to override the displayed image in the binder UI when present."
+        },
+        {
+          "path": "frontend/src/screens/BinderViewScreen.tsx",
+          "operation": "modify",
+          "description": "Update binder card thumbnail rendering to prefer locally cached edited image (if saved in editedImageCache) over the original uploaded image URL, without breaking reload behavior."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Enable drag-and-drop reordering of photocards within a binder and persist the new order via the backend reorderCards capability.",
+      "acceptanceCriteria": [
+        "User can drag a card thumbnail/tile to reorder within the binder view.",
+        "The new order is immediately reflected in the UI after dropping.",
+        "The new order is saved and remains correct after refresh/reopen.",
+        "Reordering does not affect cards in other binders."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/dnd/useCardReorder.ts",
+          "operation": "create",
+          "description": "Create a hook that manages local card order state, performs optimistic reordering on drop, and persists via reorderCards with error rollback messaging (English)."
+        },
+        {
+          "path": "frontend/src/screens/BinderViewScreen.tsx",
+          "operation": "modify",
+          "description": "Add drag-and-drop interactions on photocard tiles within the binder view and call the reorder persistence hook; keep reordering scoped to the current binder only."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Add binder theme customization UI (cover/page/card frame styles) with live preview and persistence per binder.",
+      "acceptanceCriteria": [
+        "Each binder has editable theme settings (at minimum: cover style and page/background style).",
+        "Theme settings are persisted and restored when the binder is reopened.",
+        "Changing theme updates the binder UI immediately (preview behavior)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/screens/BinderSettingsScreen.tsx",
+          "operation": "create",
+          "description": "Create Binder Settings screen allowing editing binder theme properties (minimum: cover style and page/background style; plus optional accent/border/frame/text colors) with instant preview and save action calling updateBinderTheme. Use generated texture previews from frontend/public/assets/generated/binder-cover-texture.dim_2048x2048.png and frontend/public/assets/generated/page-paper-texture.dim_2048x2048.png; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/binders/theme.ts",
+          "operation": "create",
+          "description": "Add theme defaults, validation, and helpers to map BinderTheme values to CSS variables/classes used by screens."
+        },
+        {
+          "path": "frontend/src/screens/BinderViewScreen.tsx",
+          "operation": "modify",
+          "description": "Apply the current binder theme to the binder view container (preview and persisted) using theme helpers so changes reflect immediately when navigating back from settings."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Implement and wire the core UI screens: Binder Library, Binder View, Add Card, Edit Card, Binder Settings, with English UI text and navigation.",
+      "acceptanceCriteria": [
+        "User can navigate between all listed screens from within the app UI.",
+        "Binder Library shows all binders for the signed-in user and supports creating a new binder with a name.",
+        "Binder View shows cards with thumbnails, supports adding a card, opening editor, deleting a card, and reordering.",
+        "All user-facing text is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/screens/BinderLibraryScreen.tsx",
+          "operation": "create",
+          "description": "Create Binder Library screen to list binders (getBinders), create binder (createBinder with default theme), open binder, and delete binder (deleteBinder), all gated behind authentication and with English labels."
+        },
+        {
+          "path": "frontend/src/screens/BinderViewScreen.tsx",
+          "operation": "modify",
+          "description": "Finalize Binder View actions and navigation links/buttons: open Add Card, open Edit Card for a selected card, open Binder Settings, delete card (only if a backend capability exists; otherwise hide/disable with clear messaging), and reorder integration."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire all screens into the app navigation (router or internal navigation state): Binder Library, Binder View, Add Card, Edit Card, Binder Settings; ensure sign-in gating is enforced before entering any of these screens."
+        },
+        {
+          "path": "frontend/src/features/binders/useBinders.ts",
+          "operation": "create",
+          "description": "Add React Query hooks for fetching binders (getBinders) and mutations for create/delete/updateTheme, with proper invalidation and signed-in gating."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Apply a consistent warm scrapbook stationery visual theme across screens (cream paper, muted coral + sage accents, subtle grain/texture, rounded corners, playful readable typography).",
+      "acceptanceCriteria": [
+        "The app has a consistent scrapbook/stationery look and feel across all main screens.",
+        "Theme avoids a predominantly blue/purple palette.",
+        "UI remains readable and accessible (sufficient contrast for primary text and controls)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "create",
+          "description": "Create global styles using Tailwind/CSS variables for scrapbook stationery theme: cream backgrounds, coral/sage accents, rounded corners, subtle grain feel, and accessible typography/contrast; avoid dominant blue/purple. Keep user-facing text in English."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Extend Tailwind theme tokens (colors/radii/shadows/typography) to support scrapbook stationery palette and consistent component styling."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "create",
+          "description": "Create a reusable layout component applying themed surfaces (paper-like panels), consistent spacing, and a top navigation bar used by all screens."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Add and wire generated static texture and sticker assets under frontend/public/assets/generated for binder customization and sticker tray use.",
+      "acceptanceCriteria": [
+        "Generated images exist under frontend/public/assets/generated and load correctly in the UI (no backend routing for these assets).",
+        "Sticker tray uses the generated sticker PNGs.",
+        "Binder/page theme previews can use the generated texture assets."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/binder-cover-texture.dim_2048x2048.png",
+          "operation": "create",
+          "description": "Add the generated static asset file exactly at frontend/public/assets/generated/binder-cover-texture.dim_2048x2048.png so it can be used for binder cover texture previews in the UI."
+        },
+        {
+          "path": "frontend/public/assets/generated/page-paper-texture.dim_2048x2048.png",
+          "operation": "create",
+          "description": "Add the generated static asset file exactly at frontend/public/assets/generated/page-paper-texture.dim_2048x2048.png so it can be used for page background texture in the UI."
+        },
+        {
+          "path": "frontend/public/assets/generated/stickers-pack-01.dim_1024x1024.png",
+          "operation": "create",
+          "description": "Add the generated static asset file exactly at frontend/public/assets/generated/stickers-pack-01.dim_1024x1024.png so it can be used by the sticker tray and editor."
+        },
+        {
+          "path": "frontend/src/features/editor/stickerTray.ts",
+          "operation": "modify",
+          "description": "Reference and load frontend/public/assets/generated/stickers-pack-01.dim_1024x1024.png for sticker tray rendering (including any slicing logic on the frontend); verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/BinderSettingsScreen.tsx",
+          "operation": "modify",
+          "description": "Reference and load frontend/public/assets/generated/binder-cover-texture.dim_2048x2048.png and frontend/public/assets/generated/page-paper-texture.dim_2048x2048.png for theme previews; verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

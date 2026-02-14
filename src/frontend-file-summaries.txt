@@ -1,0 +1,18 @@
+{
+  "frontend/src/App.tsx": "Main application component managing screen navigation, authentication state, and profile setup flow with conditional rendering based on user authentication status.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including user profiles, binders, photocards, theme updates, and card reordering with proper cache invalidation and type-safe ExternalBlob handling.",
+  "frontend/src/features/auth/LoginPanel.tsx": "Sign-in screen with Internet Identity integration displaying app branding and login button.",
+  "frontend/src/features/auth/ProfileSetupModal.tsx": "Modal dialog for first-time user profile setup prompting for display name.",
+  "frontend/src/components/layout/AppLayout.tsx": "Main layout wrapper with header navigation, user info display, logout functionality, and footer with attribution.",
+  "frontend/src/screens/BinderLibraryScreen.tsx": "Binder collection overview screen with grid display, create/delete binder functionality, and navigation to individual binders.",
+  "frontend/src/screens/BinderViewScreen.tsx": "Individual binder view displaying photocard grid with drag-and-drop reordering, edit navigation, and theme-based styling.",
+  "frontend/src/screens/AddCardScreen.tsx": "Card upload screen with image file selection, validation, preview, progress tracking, and ExternalBlob integration.",
+  "frontend/src/screens/EditCardScreen.tsx": "Canvas-based photocard editor with sticker placement, manipulation (move/scale/rotate/delete), and save functionality.",
+  "frontend/src/screens/BinderSettingsScreen.tsx": "Binder theme customization interface with color pickers, texture selectors, frame style options, and live preview.",
+  "frontend/src/features/binders/theme.ts": "Default theme configuration helper providing scrapbook-style color and style defaults.",
+  "frontend/src/features/cards/imageValidation.ts": "Image file validation utilities checking file type and size with user-friendly error messages.",
+  "frontend/src/features/cards/editedImageCache.ts": "Local storage utilities for caching edited photocard images per card ID.",
+  "frontend/src/features/editor/stickerTray.ts": "Sticker data definitions and image loading from sprite sheet with coordinates for six sticker types.",
+  "frontend/src/index.css": "Global styles with scrapbook stationery theme using OKLCH colors (cream, peach, sage, coral) and custom utility classes.",
+  "frontend/tailwind.config.js": "Tailwind configuration extended with scrapbook color palette, custom border radii, shadows, and handwriting font family."
+}

@@ -1,0 +1,181 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-implement-internet-identity-sign-in-and-ensure-all-photocard-binder-data-is-stored-and-fetched-per-signed-in-user-keyed-by-the-user-principal",
+      "featureTitle": "Implement Internet Identity sign-in and ensure all photocard binder data is stored and fetched per signed-in user (keyed by the user Principal).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/features/auth/LoginPanel.tsx",
+        "frontend/src/features/auth/ProfileSetupModal.tsx",
+        "frontend/src/hooks/useActor.ts",
+        "frontend/src/hooks/useInternetIdentity.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-image-upload-flow-for-photocards-allow-users-to-add-a-photocard-by-uploading-an-image-file-store-the-image-content-in-a-way-that-can-be-retrieved-and-displayed-later",
+      "featureTitle": "Implement image upload flow for photocards: allow users to add a photocard by uploading an image file; store the image content in a way that can be retrieved and displayed later.",
+      "files": [
+        "frontend/src/features/cards/imageValidation.ts",
+        "frontend/src/screens/AddCardScreen.tsx",
+        "frontend/src/screens/BinderViewScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-an-in-browser-photocard-editor-that-lets-users-place-and-manipulate-stickers-on-top-of-their-uploaded-image-and-save-the-edited-result-as-that-card-s-display-image",
+      "featureTitle": "Add an in-browser photocard editor that lets users place and manipulate stickers on top of their uploaded image and save the edited result as that card’s display image.",
+      "files": [
+        "frontend/src/features/cards/editedImageCache.ts",
+        "frontend/src/features/editor/stickerTray.ts",
+        "frontend/src/screens/BinderViewScreen.tsx",
+        "frontend/src/screens/EditCardScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-drag-and-drop-reordering-of-photocards-within-a-binder-and-persist-the-new-order-to-the-backend",
+      "featureTitle": "Implement drag-and-drop reordering of photocards within a binder, and persist the new order to the backend.",
+      "files": [
+        "frontend/src/screens/BinderViewScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-binder-appearance-customization-allow-users-to-change-binder-theme-properties-e-g-cover-color-texture-page-background-style-and-card-frame-style-and-persist-these-settings-per-binder",
+      "featureTitle": "Implement binder appearance customization: allow users to change binder theme properties (e.g., cover color/texture, page background style, and card frame style) and persist these settings per binder.",
+      "files": [
+        "frontend/src/features/binders/theme.ts",
+        "frontend/src/screens/BinderSettingsScreen.tsx",
+        "frontend/src/screens/BinderViewScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-core-ui-screens-1-binder-library-list-create-open-delete-binders-2-binder-view-grid-list-of-cards-with-reorder-3-add-card-upload-4-edit-card-sticker-editor-5-binder-settings-theme-customization",
+      "featureTitle": "Create core UI screens: (1) Binder Library (list/create/open/delete binders), (2) Binder View (grid/list of cards with reorder), (3) Add Card (upload), (4) Edit Card (sticker editor), (5) Binder Settings (theme customization).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/screens/BinderLibraryScreen.tsx",
+        "frontend/src/screens/BinderViewScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-a-coherent-distinctive-visual-theme-across-the-app-ui-choose-a-warm-scrapbook-stationery-style-cream-paper-backgrounds-muted-coral-sage-accents-subtle-grain-texture-rounded-corners-playful-but-readable-typography-and-apply-it-consistently-to-layout-buttons-cards-and-dialogs",
+      "featureTitle": "Apply a coherent, distinctive visual theme across the app UI: choose a warm ‘scrapbook stationery’ style (cream paper backgrounds, muted coral + sage accents, subtle grain/texture, rounded corners, playful but readable typography) and apply it consistently to layout, buttons, cards, and dialogs.",
+      "files": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/index.css",
+        "frontend/tailwind.config.js"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-8"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-generated-static-image-assets-binder-page-textures-and-a-starter-sticker-set-under-frontend-public-assets-generated-and-use-them-in-the-binder-customization-ui-and-sticker-tray",
+      "featureTitle": "Add generated static image assets (binder/page textures and a starter sticker set) under frontend/public/assets/generated and use them in the binder customization UI and sticker tray.",
+      "files": [
+        "frontend/src/features/editor/stickerTray.ts",
+        "frontend/src/screens/BinderSettingsScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
