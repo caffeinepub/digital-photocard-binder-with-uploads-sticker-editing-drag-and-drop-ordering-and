@@ -1,52 +1,47 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Subscription UX refinements with configurable Shopify upgrade CTA",
+  "title": "Vintage price tag sticker PNG assets (transparent)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add a configurable Shopify upgrade URL and surface a safe external upgrade link anywhere binder limits are communicated for Free users.",
+      "summary": "Generate three vintage-style price-tag sticker PNGs (transparent background) with specified labels and colors.",
       "acceptanceCriteria": [
-        "A configurable setting exists for the Shopify upgrade URL (e.g., via a single frontend config constant or environment variable) and is referenced by the UI.",
-        "When a Free user is at the binder limit, the binder-limit alert includes a clear English call-to-action (e.g., “Upgrade”) that links to the configured Shopify URL.",
-        "The upgrade link opens in a new tab and uses safe anchor attributes (target=\"_blank\" and rel=\"noopener noreferrer\").",
-        "If the Shopify upgrade URL is not configured, the UI does not break; it should hide the upgrade CTA or show a non-clickable message indicating the link is unavailable."
+        "Three PNG files are produced, one per sticker label (MINT / NEAR MINT / PLAYED).",
+        "Each PNG has a transparent background with only the sticker artwork present (no rectangular background fill).",
+        "Each sticker has visible subtle paper texture and a small peeled-corner detail.",
+        "Sticker text matches exactly and uses the specified text color (green/blue/orange), while maintaining a cohesive vintage price-tag style across all three."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/config/subscription.ts",
+          "path": "frontend/public/assets/generated/price-tag-mint.dim_512x512.png",
           "operation": "create",
-          "description": "Add a single source of truth for the Shopify upgrade URL (e.g., reading from a Vite environment variable) and export a helper that returns a usable URL or null when unconfigured."
+          "description": "Add generated transparent PNG asset for vintage price tag sticker with subtle paper texture and a small peeled corner; text reads exactly \"MINT\" in green; no shadows/background outside sticker shape."
         },
         {
-          "path": "frontend/src/screens/BinderLibraryScreen.tsx",
-          "operation": "modify",
-          "description": "Wire the configurable Shopify upgrade URL into binder-limit messaging for Free users: (1) the binder limit reached alert in the binder library, and (2) the at-limit/disabled “New Binder” create dialog state. Ensure the link opens in a new tab with rel=\"noopener noreferrer\" and gracefully hides/replaces the CTA when the URL is not configured."
+          "path": "frontend/public/assets/generated/price-tag-near-mint.dim_512x512.png",
+          "operation": "create",
+          "description": "Add generated transparent PNG asset for vintage price tag sticker with subtle paper texture and a small peeled corner; text reads exactly \"NEAR MINT\" in blue; no shadows/background outside sticker shape."
+        },
+        {
+          "path": "frontend/public/assets/generated/price-tag-played.dim_512x512.png",
+          "operation": "create",
+          "description": "Add generated transparent PNG asset for vintage price tag sticker with subtle paper texture and a small peeled corner; text reads exactly \"PLAYED\" in orange; no shadows/background outside sticker shape."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Show friendly, actionable English messages for backend binder-limit enforcement errors while preserving raw error details for debugging.",
+      "summary": "Place the generated sticker PNGs under frontend/public/assets/generated so they are directly accessible via /assets/generated/<filename>.",
       "acceptanceCriteria": [
-        "If binder creation fails due to reaching the binder limit, the UI shows a user-friendly English message that references the current plan limit and suggests upgrading (for Free) or deleting a binder.",
-        "Non-binder-limit errors still display a generic failure message plus any safe-to-show details (no app crash)."
+        "The three generated PNGs exist under frontend/public/assets/generated.",
+        "Requesting each asset at /assets/generated/<filename> returns the image successfully in the deployed app."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/backendErrorMessages.ts",
+          "path": "frontend/public/assets/generated/README.generated-assets.txt",
           "operation": "create",
-          "description": "Create a small error-normalization utility that detects binder-limit enforcement failures from thrown errors (e.g., by matching known substrings) and returns: a user-safe message + a preserved debug message for console logging."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Enhance binder-creation mutation handling to preserve underlying error details for debugging (e.g., consistent console logging from onError) without changing immutable hook modules."
-        },
-        {
-          "path": "frontend/src/screens/BinderLibraryScreen.tsx",
-          "operation": "modify",
-          "description": "Replace raw trap-string rendering for binder creation failures with friendly, actionable English messaging using the shared error-normalization utility; include plan-limit context (max binders and plan name) and, for Free users, suggest upgrading (reusing the configurable Shopify upgrade link when available) or deleting a binder. Continue to show a generic fallback for other errors with safe-to-show details, and avoid UI crashes."
+          "description": "Document the expected direct browser paths for the generated assets to validate static serving: /assets/generated/price-tag-mint.dim_512x512.png, /assets/generated/price-tag-near-mint.dim_512x512.png, /assets/generated/price-tag-played.dim_512x512.png."
         }
       ]
     }

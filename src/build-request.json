@@ -1,56 +1,56 @@
 {
   "kind": "build_request",
-  "title": "Refine subscription handling and add Shopify-ready upgrade link",
+  "title": "Generate vintage-style price tag sticker PNG assets",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a Shopify-ready external upgrade link for Free users and surface it in the UI anywhere binder limits are communicated (e.g., the binder limit reached alert in the binder library and the disabled “New Binder” create dialog state). The link must be configurable (no hard-coded store URL) and must open in a new tab.",
-      "target": "frontend",
+      "text": "Generate 3 separate vintage-style \"Price Tag\" sticker images as transparent-background PNGs, each isolated with no shadows or background layer outside the sticker shape. Each sticker must have a slight paper texture and a small peeled corner to look like a physical sticker.\n\nText requirements per sticker:\n- Sticker 1: \"MINT\" in green\n- Sticker 2: \"NEAR MINT\" in blue\n- Sticker 3: \"PLAYED\" in orange",
+      "target": "unknown",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-4"
         ],
         "quotes": [
-          "Yes please, and have it link to Shopify ready"
+          "Generate a set of vintage-style 'Price Tag' stickers. One says 'MINT' in green, one says 'NEAR MINT' in blue, and one says 'PLAYED' in orange. Give them a slight paper texture and a tiny bit of 'peeling' at one corner to make them look like real physical stickers. Isolated on transparent background."
         ]
       },
       "acceptanceCriteria": [
-        "A configurable setting exists for the Shopify upgrade URL (e.g., via a single frontend config constant or environment variable) and is referenced by the UI.",
-        "When a Free user is at the binder limit, the binder-limit alert includes a clear English call-to-action (e.g., “Upgrade”) that links to the configured Shopify URL.",
-        "The upgrade link opens in a new tab and uses safe anchor attributes (target=\"_blank\" and rel=\"noopener noreferrer\").",
-        "If the Shopify upgrade URL is not configured, the UI does not break; it should hide the upgrade CTA or show a non-clickable message indicating the link is unavailable."
+        "Three PNG files are produced, one per sticker label (MINT / NEAR MINT / PLAYED).",
+        "Each PNG has a transparent background with only the sticker artwork present (no rectangular background fill).",
+        "Each sticker has visible subtle paper texture and a small peeled-corner detail.",
+        "Sticker text matches exactly and uses the specified text color (green/blue/orange), while maintaining a cohesive vintage price-tag style across all three."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Improve subscription/binder-limit handling UX so that errors from backend binder-limit enforcement are shown as friendly, actionable English messages rather than raw trap strings, while preserving the underlying error details for debugging.",
+      "text": "Add the generated sticker PNGs to the frontend static assets under frontend/public/assets/generated and ensure they can be loaded directly by the browser via /assets/generated/<filename>.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "Yes please, and have it link to Shopify ready"
+          "msg-4"
         ]
       },
       "acceptanceCriteria": [
-        "If binder creation fails due to reaching the binder limit, the UI shows a user-friendly English message that references the current plan limit and suggests upgrading (for Free) or deleting a binder.",
-        "Non-binder-limit errors still display a generic failure message plus any safe-to-show details (no app crash)."
+        "The three generated PNGs exist under frontend/public/assets/generated.",
+        "Requesting each asset at /assets/generated/<filename> returns the image successfully in the deployed app."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and frontend/src/components/ui). Compose these modules instead.",
-    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services."
+    "Do not add a non-transparent background; stickers must be isolated on a transparent background.",
+    "Keep all user-facing text in English (MINT, NEAR MINT, PLAYED)."
   ],
   "nonGoals": [
-    "Implement Shopify API integration (Admin API/Storefront API), webhooks, or automatic subscription activation from Shopify purchases.",
-    "Add third-party authentication providers beyond Internet Identity.",
-    "Add external databases or non-IC backend components."
+    "Do not change backend canister logic.",
+    "Do not modify the existing sticker sprite-sheet system unless explicitly requested."
   ],
   "imageRequirements": {
-    "required": [],
+    "required": [
+      "Vintage price tag sticker with paper texture and small peeled corner, text \"MINT\" (price-tag-mint.dim_512x512.png)",
+      "Vintage price tag sticker with paper texture and small peeled corner, text \"NEAR MINT\" (price-tag-near-mint.dim_512x512.png)",
+      "Vintage price tag sticker with paper texture and small peeled corner, text \"PLAYED\" (price-tag-played.dim_512x512.png)"
+    ],
     "edits": []
   }
 }

@@ -22,6 +22,14 @@ interface Sticker {
   rotation: number;
 }
 
+const RARITY_ICONS = [
+  { name: 'Common', path: '/assets/generated/rarity-common.dim_128x128.png' },
+  { name: 'Uncommon', path: '/assets/generated/rarity-uncommon.dim_128x128.png' },
+  { name: 'Rare', path: '/assets/generated/rarity-rare.dim_128x128.png' },
+  { name: 'Epic', path: '/assets/generated/rarity-epic.dim_128x128.png' },
+  { name: 'Legendary', path: '/assets/generated/rarity-legendary.dim_128x128.png' },
+];
+
 export default function EditCardScreen({ binderId, cardId, onBack, onSave }: EditCardScreenProps) {
   const { data: binders = [] } = useGetBinders();
   const binder = binders.find((b) => b.id === binderId);
@@ -254,6 +262,32 @@ export default function EditCardScreen({ binderId, cardId, onBack, onSave }: Edi
         </div>
 
         <div className="space-y-6">
+          <Card className="rounded-3xl border-4 border-sage/20 bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-bold text-charcoal mb-4 font-handwriting">
+                Card Rarity
+              </h3>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {RARITY_ICONS.map((rarity) => (
+                  <div
+                    key={rarity.name}
+                    className="flex flex-col items-center gap-1"
+                    title={`${rarity.name} rarity`}
+                  >
+                    <img
+                      src={rarity.path}
+                      alt={`${rarity.name} rarity`}
+                      className="w-12 h-12 object-contain"
+                    />
+                    <span className="text-xs text-charcoal/70 font-medium">
+                      {rarity.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="rounded-3xl border-4 border-sage/20 bg-white/80 backdrop-blur-sm">
             <CardContent className="p-6">
               <h3 className="text-lg font-bold text-charcoal mb-4 font-handwriting">

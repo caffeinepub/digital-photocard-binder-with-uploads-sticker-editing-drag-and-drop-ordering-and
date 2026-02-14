@@ -1,43 +1,31 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project to refine subscription handling (including binder limit behavior) and integrate with Shopify.",
+  "summary": "New project",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Vintage price tag sticker with paper texture and small peeled corner, text \"MINT\" (price-tag-mint.dim_512x512.png)\n- Vintage price tag sticker with paper texture and small peeled corner, text \"NEAR MINT\" (price-tag-near-mint.dim_512x512.png)\n- Vintage price tag sticker with paper texture and small peeled corner, text \"PLAYED\" (price-tag-played.dim_512x512.png)",
   "existing_features": [
     {
-      "id": "feature-add-a-shopify-ready-external-upgrade-link-for-free-users-and-surface-it-in-the-ui-anywhere-binder-limits-are-communicated-e-g-the-binder-limit-reached-alert-in-the-binder-library-and-the-disabled-new-binder-create-dialog-state-the-link-must-be-configurable-no-hard-coded-store-url-and-must-open-in-a-new-tab",
-      "title": "Add a Shopify-ready external upgrade link for Free users and surface it in the UI anywhere binder limits are communicated (e.g., the binder limit reached alert in the binder library and the disabled “New Binder” create dialog state). The link must be configurable (no hard-coded store URL) and must open in a new tab.",
+      "id": "feature-generate-3-separate-vintage-style-price-tag-sticker-images-as-transparent-background-pngs-each-isolated-with-no-shadows-or-background-layer-outside-the-sticker-shape-each-sticker-must-have-a-slight-paper-texture-and-a-small-peeled-corner-to-look-like-a-physical-sticker-text-requirements-per-sticker-sticker-1-mint-in-green-sticker-2-near-mint-in-blue-sticker-3-played-in-orange",
+      "title": "Generate 3 separate vintage-style \"Price Tag\" sticker images as transparent-background PNGs, each isolated with no shadows or background layer outside the sticker shape. Each sticker must have a slight paper texture and a small peeled corner to look like a physical sticker.\n\nText requirements per sticker:\n- Sticker 1: \"MINT\" in green\n- Sticker 2: \"NEAR MINT\" in blue\n- Sticker 3: \"PLAYED\" in orange",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-improve-subscription-binder-limit-handling-ux-so-that-errors-from-backend-binder-limit-enforcement-are-shown-as-friendly-actionable-english-messages-rather-than-raw-trap-strings-while-preserving-the-underlying-error-details-for-debugging",
-      "title": "Improve subscription/binder-limit handling UX so that errors from backend binder-limit enforcement are shown as friendly, actionable English messages rather than raw trap strings, while preserving the underlying error details for debugging.",
+      "id": "feature-add-the-generated-sticker-pngs-to-the-frontend-static-assets-under-frontend-public-assets-generated-and-ensure-they-can-be-loaded-directly-by-the-browser-via-assets-generated-filename",
+      "title": "Add the generated sticker PNGs to the frontend static assets under frontend/public/assets/generated and ensure they can be loaded directly by the browser via /assets/generated/<filename>.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Refine subscription handling, including expected binder limit behavior.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Integrate/link the product/service with Shopify (Shopify-ready integration).",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Refine subscription handling and add Shopify-ready upgrade link",
+  "new_feature_requests": [],
+  "projectName": "Generate vintage-style price tag sticker PNG assets",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

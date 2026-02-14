@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { BookHeart, LogOut, Heart } from 'lucide-react';
 import { ReactNode } from 'react';
 import AccentColorSelector from './AccentColorSelector';
+import { BUILD_INFO } from '../../config/buildInfo';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -79,6 +80,7 @@ export default function AppLayout({ children, onNavigateHome }: AppLayoutProps) 
             </a>
           </p>
           <p className="text-xs mt-2">© {new Date().getFullYear()} Photocard Binder</p>
+          <p className="text-xs mt-1 opacity-50">Build: {BUILD_INFO.deploymentId}</p>
         </div>
       </footer>
     </div>

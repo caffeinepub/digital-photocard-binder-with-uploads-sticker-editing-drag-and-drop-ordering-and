@@ -2,12 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-shopify-ready-external-upgrade-link-for-free-users-and-surface-it-in-the-ui-anywhere-binder-limits-are-communicated-e-g-the-binder-limit-reached-alert-in-the-binder-library-and-the-disabled-new-binder-create-dialog-state-the-link-must-be-configurable-no-hard-coded-store-url-and-must-open-in-a-new-tab",
-      "featureTitle": "Add a Shopify-ready external upgrade link for Free users and surface it in the UI anywhere binder limits are communicated (e.g., the binder limit reached alert in the binder library and the disabled “New Binder” create dialog state). The link must be configurable (no hard-coded store URL) and must open in a new tab.",
-      "files": [
-        "frontend/src/config/subscription.ts",
-        "frontend/src/screens/BinderLibraryScreen.tsx"
-      ],
+      "featureId": "feature-generate-3-separate-vintage-style-price-tag-sticker-images-as-transparent-background-pngs-each-isolated-with-no-shadows-or-background-layer-outside-the-sticker-shape-each-sticker-must-have-a-slight-paper-texture-and-a-small-peeled-corner-to-look-like-a-physical-sticker-text-requirements-per-sticker-sticker-1-mint-in-green-sticker-2-near-mint-in-blue-sticker-3-played-in-orange",
+      "featureTitle": "Generate 3 separate vintage-style \"Price Tag\" sticker images as transparent-background PNGs, each isolated with no shadows or background layer outside the sticker shape. Each sticker must have a slight paper texture and a small peeled corner to look like a physical sticker.\n\nText requirements per sticker:\n- Sticker 1: \"MINT\" in green\n- Sticker 2: \"NEAR MINT\" in blue\n- Sticker 3: \"PLAYED\" in orange",
+      "files": [],
       "components": [
         "authorization@4.0.0",
         "blob-storage@4.0.0",
@@ -23,13 +20,9 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-improve-subscription-binder-limit-handling-ux-so-that-errors-from-backend-binder-limit-enforcement-are-shown-as-friendly-actionable-english-messages-rather-than-raw-trap-strings-while-preserving-the-underlying-error-details-for-debugging",
-      "featureTitle": "Improve subscription/binder-limit handling UX so that errors from backend binder-limit enforcement are shown as friendly, actionable English messages rather than raw trap strings, while preserving the underlying error details for debugging.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/screens/BinderLibraryScreen.tsx",
-        "frontend/src/utils/backendErrorMessages.ts"
-      ],
+      "featureId": "feature-add-the-generated-sticker-pngs-to-the-frontend-static-assets-under-frontend-public-assets-generated-and-ensure-they-can-be-loaded-directly-by-the-browser-via-assets-generated-filename",
+      "featureTitle": "Add the generated sticker PNGs to the frontend static assets under frontend/public/assets/generated and ensure they can be loaded directly by the browser via /assets/generated/<filename>.",
+      "files": [],
       "components": [
         "authorization@4.0.0",
         "blob-storage@4.0.0",

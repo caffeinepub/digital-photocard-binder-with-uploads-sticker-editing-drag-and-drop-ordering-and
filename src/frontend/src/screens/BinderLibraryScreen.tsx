@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useGetBinders, useCreateBinder, useDeleteBinder, useGetSubscriptionStatus } from '../hooks/useQueries';
+import { useLoadingDiagnostics } from '../hooks/useLoadingDiagnostics';
 import { getDefaultTheme } from '../features/binders/theme';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, BookOpen, Trash2, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
+import { Plus, BookOpen, Trash2, Loader2, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { getShopifyUpgradeUrl, isShopifyUpgradeConfigured } from '../config/subscription';
@@ -17,12 +18,21 @@ interface BinderLibraryScreenProps {
 }
 
 export default function BinderLibraryScreen({ onOpenBinder }: BinderLibraryScreenProps) {
-  const { data: binders = [], isLoading } = useGetBinders();
-  const { data: subscriptionStatus, isLoading: isLoadingSubscription } = useGetSubscriptionStatus();
+  const { data: binders = [], isLoading: bindersLoading, error: bindersError, refetch: refetchBinders } = useGetBinders();
+  const { data: subscriptionStatus, isLoading: isLoadingSubscription, error: subscriptionError, refetch: refetchSubscription } = useGetSubscriptionStatus();
   const { mutate: createBinder, isPending: isCreating, error: createError } = useCreateBinder();
   const { mutate: deleteBinder, isPending: isDeleting } = useDeleteBinder();
   const [newBinderName, setNewBinderName] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Loading diagnostics
+  useLoadingDiagnostics({
+    actorReady: true,
+    profileLoading: false,
+    profileError: false,
+    bindersLoading,
+    bindersError: !!bindersError,
+  });
 
   // Determine max binders based on subscription status
   const maxBinders = subscriptionStatus === 'pro' ? 5 : 2;
@@ -60,7 +70,41 @@ export default function BinderLibraryScreen({ onOpenBinder }: BinderLibraryScree
     setIsDialogOpen(open);
   };
 
-  if (isLoading || isLoadingSubscription) {
+  const handleRetry = () => {
+    refetchBinders();
+    refetchSubscription();
+  };
+
+  const isLoading = bindersLoading || isLoadingSubscription;
+  const hasError = bindersError || subscriptionError;
+
+  if (hasError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="max-w-md w-full px-4">
+          <Alert variant="destructive" className="rounded-2xl border-2 mb-4">
+            <AlertCircle className="h-5 w-5" />
+            <AlertDescription className="text-base">
+              <strong className="block mb-2">Unable to load your binders</strong>
+              <p className="text-sm mb-4">
+                {(bindersError as Error)?.message || (subscriptionError as Error)?.message || 'An unexpected error occurred. Please try again.'}
+              </p>
+            </AlertDescription>
+          </Alert>
+          
+          <Button
+            onClick={handleRetry}
+            className="w-full bg-binder-accent hover:bg-binder-accent-hover text-white rounded-xl h-12"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-binder-accent" />
@@ -224,63 +268,58 @@ export default function BinderLibraryScreen({ onOpenBinder }: BinderLibraryScree
               }}
             >
               <div
-                className="h-32 relative"
+                className="h-48 bg-gradient-to-br from-sage/20 to-sage/5 flex items-center justify-center relative overflow-hidden"
                 style={{
-                  backgroundColor: binder.theme.coverColor,
-                  backgroundImage: binder.theme.coverTexture ? `url(${binder.theme.coverTexture})` : undefined,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
+                  backgroundColor: binder.theme.coverColor || undefined,
                 }}
                 onClick={() => onOpenBinder(binder.id)}
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
+                <BookOpen className="w-20 h-20 text-sage/30 group-hover:scale-110 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
               </div>
-              <CardHeader onClick={() => onOpenBinder(binder.id)}>
-                <CardTitle className="text-xl font-handwriting text-charcoal line-clamp-2">
-                  {binder.name}
-                </CardTitle>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle
+                    className="text-xl font-handwriting text-charcoal group-hover:text-binder-accent transition-colors cursor-pointer flex-1"
+                    onClick={() => onOpenBinder(binder.id)}
+                  >
+                    {binder.name}
+                  </CardTitle>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                        disabled={isDeleting}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="rounded-3xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="font-handwriting text-2xl">Delete Binder?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{binder.name}"? This will permanently remove the binder and all its cards. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteBinder(binder.id)}
+                          className="bg-destructive hover:bg-destructive/90 text-white rounded-xl"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
                 <p className="text-sm text-muted-foreground">
                   {binder.cards.length} {binder.cards.length === 1 ? 'card' : 'cards'}
                 </p>
-              </CardHeader>
-              <CardContent className="flex justify-between items-center pt-0">
-                <Button
-                  onClick={() => onOpenBinder(binder.id)}
-                  variant="outline"
-                  size="sm"
-                  className="rounded-xl border-2 border-sage/30 hover:border-binder-accent hover:bg-binder-accent/5"
-                >
-                  Open
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
-                      disabled={isDeleting}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="rounded-3xl">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Binder?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete "{binder.name}" and all its cards. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteBinder(binder.id)}
-                        className="bg-destructive hover:bg-destructive/90 rounded-xl"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
               </CardContent>
             </Card>
           ))}

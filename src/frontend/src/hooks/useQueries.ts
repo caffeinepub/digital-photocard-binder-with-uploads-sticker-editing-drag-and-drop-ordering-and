@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { BinderView, BinderTheme, UserProfile, CardPosition, SubscriptionStatus } from '../backend';
 import { ExternalBlob } from '../backend';
+import { withTimeout } from '../utils/promiseTimeout';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -10,10 +11,15 @@ export function useGetCallerUserProfile() {
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
+      return withTimeout(
+        actor.getCallerUserProfile(),
+        30000,
+        'Profile fetch timed out - please check your connection'
+      );
     },
     enabled: !!actor && !actorFetching,
-    retry: false,
+    retry: 1,
+    retryDelay: 1000,
   });
 
   return {
@@ -45,9 +51,15 @@ export function useGetSubscriptionStatus() {
     queryKey: ['subscriptionStatus'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getSubscriptionStatus();
+      return withTimeout(
+        actor.getSubscriptionStatus(),
+        30000,
+        'Subscription status fetch timed out'
+      );
     },
     enabled: !!actor && !isFetching,
+    retry: 1,
+    retryDelay: 1000,
   });
 }
 
@@ -58,9 +70,15 @@ export function useGetBinders() {
     queryKey: ['binders'],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getBinders();
+      return withTimeout(
+        actor.getBinders(),
+        30000,
+        'Binders fetch timed out - please check your connection'
+      );
     },
     enabled: !!actor && !isFetching,
+    retry: 1,
+    retryDelay: 1000,
   });
 }
 

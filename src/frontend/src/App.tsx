@@ -1,6 +1,8 @@
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useQueries';
 import { useAccentColor } from './hooks/useAccentColor';
+import { useLoadingDiagnostics } from './hooks/useLoadingDiagnostics';
+import { useActor } from './hooks/useActor';
 import { useState } from 'react';
 import LoginPanel from './features/auth/LoginPanel';
 import ProfileSetupModal from './features/auth/ProfileSetupModal';
@@ -10,6 +12,7 @@ import BinderViewScreen from './screens/BinderViewScreen';
 import AddCardScreen from './screens/AddCardScreen';
 import EditCardScreen from './screens/EditCardScreen';
 import BinderSettingsScreen from './screens/BinderSettingsScreen';
+import GlobalLoadingGate from './components/system/GlobalLoadingGate';
 
 type Screen = 
   | { type: 'library' }
@@ -20,7 +23,8 @@ type Screen =
 
 export default function App() {
   const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const { actor } = useActor();
+  const { data: userProfile, isLoading: profileLoading, isFetched, error: profileError, refetch: refetchProfile } = useGetCallerUserProfile();
   const [currentScreen, setCurrentScreen] = useState<Screen>({ type: 'library' });
   
   // Initialize accent color (applies to both authenticated and unauthenticated views)
@@ -28,6 +32,13 @@ export default function App() {
 
   const isAuthenticated = !!identity;
   const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+
+  // Loading diagnostics
+  useLoadingDiagnostics({
+    actorReady: !!actor,
+    profileLoading,
+    profileError: !!profileError,
+  });
 
   if (!isAuthenticated) {
     return <LoginPanel />;
@@ -37,14 +48,17 @@ export default function App() {
     return <ProfileSetupModal />;
   }
 
-  if (profileLoading || !isFetched) {
+  // Show loading gate with error handling and retry
+  const isLoading = profileLoading || !isFetched;
+  if (isLoading || profileError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-binder-dark">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-binder-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-binder-text-muted">Loading your binders...</p>
-        </div>
-      </div>
+      <GlobalLoadingGate
+        isLoading={isLoading}
+        error={profileError as Error | null}
+        onRetry={() => refetchProfile()}
+        loadingMessage="Loading your binders..."
+        errorTitle="Unable to load your profile"
+      />
     );
   }
 

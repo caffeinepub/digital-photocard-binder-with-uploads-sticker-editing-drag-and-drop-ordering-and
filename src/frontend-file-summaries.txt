@@ -1,13 +1,13 @@
 {
-  "frontend/src/App.tsx": "Main application component managing screen navigation, authentication state, profile setup flow, and accent color initialization for both authenticated and unauthenticated views.",
-  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including user profiles, subscription status, binders, photocards, theme updates, and card reordering with proper cache invalidation, type-safe ExternalBlob handling, and enhanced error logging for binder creation.",
+  "frontend/src/App.tsx": "Main application component with authentication flow, profile setup, loading diagnostics, error handling with retry functionality, and screen navigation.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations with timeout wrappers, retry configuration, and enhanced error handling for profile, subscription, binders, and card management.",
   "frontend/src/features/auth/LoginPanel.tsx": "Soft beige-themed sign-in screen with Internet Identity integration, accent color initialization, and binder accent utility classes for consistent theming.",
   "frontend/src/features/auth/ProfileSetupModal.tsx": "Modal dialog for first-time user profile setup prompting for display name.",
-  "frontend/src/components/layout/AppLayout.tsx": "Light beige-themed layout wrapper with header navigation, accent color selector, user info display, logout functionality, and footer with attribution using soft binder aesthetics.",
-  "frontend/src/screens/BinderLibraryScreen.tsx": "Binder collection overview screen with subscription-aware limit enforcement, displaying current count/limit, disabling creation at limit, showing user-friendly error messages with configurable Shopify upgrade links (opening in new tab with safe attributes), and handling backend rejection errors gracefully.",
+  "frontend/src/components/layout/AppLayout.tsx": "Light beige-themed layout wrapper with header navigation, accent color selector, user info display, logout functionality, footer with attribution, and build identifier display.",
+  "frontend/src/screens/BinderLibraryScreen.tsx": "Binder collection overview screen with subscription-aware limits, error handling with retry, loading diagnostics, and user-friendly error messages with upgrade links.",
   "frontend/src/screens/BinderViewScreen.tsx": "Individual binder view with paginated card grid, swipe navigation, light beige binder frame styling, drag-and-drop reordering, and soft theme with proper PageSwipeContainer integration.",
   "frontend/src/screens/AddCardScreen.tsx": "Card upload screen with image file selection, validation, preview, progress tracking, ExternalBlob integration, and binder accent utility classes for primary actions and focus states.",
-  "frontend/src/screens/EditCardScreen.tsx": "Canvas-based photocard editor with sticker placement, manipulation (move/scale/rotate/delete), save functionality using FileReader to convert Blob to data URL for localStorage, and dynamic accent color application for selection borders.",
+  "frontend/src/screens/EditCardScreen.tsx": "Canvas-based photocard editor with sticker placement, manipulation (move/scale/rotate/delete), rarity icon display section showing all five card rarities with gold-and-silver flat-design icons, save functionality using FileReader to convert Blob to data URL for localStorage, and dynamic accent color application for selection borders.",
   "frontend/src/screens/BinderSettingsScreen.tsx": "Light beige-themed binder customization interface with color pickers, texture selectors including new light assets, frame style options, and live preview.",
   "frontend/src/features/binders/theme.ts": "Default theme configuration helper providing soft beige color and style defaults with light textures.",
   "frontend/src/features/cards/imageValidation.ts": "Image file validation utilities checking file type and size with user-friendly error messages.",
@@ -23,5 +23,10 @@
   "frontend/src/hooks/useAccentColor.ts": "Custom React hook managing client-side accent color selection with localStorage persistence and CSS variable overrides for --binder-accent and --binder-accent-hover.",
   "frontend/src/components/layout/AccentColorSelector.tsx": "Dropdown selector component displaying accent color options with color previews, including a \"Default / Off\" option.",
   "frontend/src/config/subscription.ts": "Configuration module for Shopify upgrade URL, reading from VITE_SHOPIFY_UPGRADE_URL environment variable and providing helper functions to check if upgrade is configured.",
-  "frontend/src/utils/backendErrorMessages.ts": "Error normalization utility that detects binder-limit enforcement errors and returns user-friendly messages with plan-specific upgrade suggestions while preserving debug details."
+  "frontend/src/utils/backendErrorMessages.ts": "Error normalization utility that detects binder-limit enforcement errors and returns user-friendly messages with plan-specific upgrade suggestions while preserving debug details.",
+  "frontend/src/config/buildInfo.ts": "Build identifier configuration for deployment tracking with deployment ID and timestamp.",
+  "frontend/src/utils/promiseTimeout.ts": "Promise timeout utility that wraps promises with a configurable timeout to prevent indefinite hanging.",
+  "frontend/src/hooks/useLoadingDiagnostics.ts": "Custom hook that logs diagnostic information when loading persists beyond a threshold, identifying which step is blocking without exposing sensitive data, with proper nullable timeout reference handling for React 19.",
+  "frontend/src/components/system/GlobalLoadingGate.tsx": "Global loading and error gate component that displays loading spinner, error state with retry button, or renders children based on state.",
+  "frontend/public/assets/generated/README.generated-assets.txt": "Documentation file listing the three generated vintage price tag sticker PNG assets with their browser paths and usage examples."
 }
