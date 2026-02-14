@@ -1,86 +1,37 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T00:21:09.778Z",
-  "summary": "The diff adds an Internet Identity-based frontend app with screens for binder library/view/add/edit/settings, a scrapbook-styled theme, sticker tray sourced from a generated sticker sheet, image upload validation, and a Motoko backend with per-Principal storage structures plus blob-storage/access-control mixins. However, saving sticker edits appears to be implemented only as a local (localStorage) cache rather than persisting an edited image back to the backend, and static generated asset files themselves are not evidenced in the provided diff summary.",
+  "generatedAt": "2026-02-14T19:57:27.530Z",
+  "summary": "Added a configurable Shopify upgrade URL getter and backend error normalization utility; updated BinderLibraryScreen to use subscription status, compute binder limits, and normalize binder creation errors. However, key UI acceptance criteria for where/how the upgrade CTA and friendly error messages are rendered are not fully evidenced in the provided truncated diff summary.",
   "missing_requirements": [
     {
-      "id": "REQ-4",
-      "requirement": "Persist sticker edits by saving the edited result as the card’s display image (backend-stored) and allow cancel without changing the stored image.",
-      "reason": "EditCardScreen renders stickers onto a canvas and calls saveEditedImage(...) which stores a data URL in localStorage; there is no evidence of a backend API call to update the photocard image with the edited composite, so the edited result is not persisted per card in backend storage as required.",
+      "id": "REQ-1",
+      "requirement": "Surface a configurable Shopify upgrade link (opens new tab with safe anchor attrs) anywhere binder limits are communicated (e.g., binder-limit alert and disabled “New Binder” create dialog), and hide/disable CTA gracefully when URL not configured.",
+      "reason": "Config helpers were added (VITE_SHOPIFY_UPGRADE_URL, null when unset), and BinderLibraryScreen imports them, but the diff excerpt does not show the actual UI anchor/link rendering, target/rel attributes, placement in binder-limit alert, or the disabled dialog-state messaging/CTA behavior when the URL is missing.",
       "evidence": [
-        "frontend/src/screens/EditCardScreen.tsx",
-        "frontend/src/features/cards/editedImageCache.ts"
+        "frontend/src/config/subscription.ts",
+        "frontend/src/screens/BinderLibraryScreen.tsx (truncated)"
       ]
     },
     {
-      "id": "REQ-9",
-      "requirement": "Add generated static image assets under frontend/public/assets/generated (binder/page textures and sticker pack) and ensure they load correctly in the UI.",
-      "reason": "Code references assets under /assets/generated, but the diff summary does not include the actual image files under frontend/public/assets/generated (added files are truncated/omitted), so their presence cannot be verified from the provided evidence.",
+      "id": "REQ-2",
+      "requirement": "Show friendly, actionable English messages for binder-limit enforcement errors (suggest upgrade for Free or delete binder), while preserving underlying error details for debugging; other errors should show a generic failure message plus safe details without crashing.",
+      "reason": "A normalization utility exists and BinderLibraryScreen computes a normalizedError, but the diff excerpt does not show the UI actually presenting the friendly message (and safe details) to the user on binder creation failure; only console logging is clearly shown in the mutation hook.",
       "evidence": [
-        "frontend/src/features/editor/stickerTray.ts",
-        "frontend/src/screens/BinderSettingsScreen.tsx"
+        "frontend/src/utils/backendErrorMessages.ts",
+        "frontend/src/screens/BinderLibraryScreen.tsx (truncated)",
+        "frontend/src/hooks/useQueries.ts (onError logs only)"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "User profile system (profile setup modal, profile CRUD methods in backend, showing display name in header).",
-      "reason": "The BuildRequest does not ask for user profiles; it only requires Internet Identity sign-in and per-user binder/card storage.",
-      "evidence": [
-        "backend/main.mo",
-        "frontend/src/features/auth/ProfileSetupModal.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "description": "Admin-token/authorization initialization flow for backend access control.",
-      "reason": "The BuildRequest does not request an admin token mechanism or explicit authorization framework beyond Internet Identity sign-in.",
-      "evidence": [
-        "frontend/src/hooks/useActor.ts",
-        "backend/main.mo",
-        "frontend/src/utils/urlParams.ts"
-      ]
-    },
-    {
-      "description": "LocalStorage-based edited image cache for cards.",
-      "reason": "The BuildRequest requires saving edited results as the card’s display image (implying persistence with the card data); adding a local cache mechanism is not requested.",
-      "evidence": [
-        "frontend/src/features/cards/editedImageCache.ts",
-        "frontend/src/screens/BinderViewScreen.tsx",
-        "frontend/src/screens/EditCardScreen.tsx"
-      ]
-    }
-  ],
-  "confidence": 0.72,
+  "hallucinated_features": [],
+  "confidence": 0.55,
   "changed_files": [
-    "all_files_summary.json",
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.css",
-    "frontend/index.html",
-    "frontend/src/App.tsx",
-    "frontend/src/components/layout/AppLayout.tsx",
-    "frontend/src/features/auth/LoginPanel.tsx",
-    "frontend/src/features/auth/ProfileSetupModal.tsx",
-    "frontend/src/features/binders/theme.ts",
-    "frontend/src/features/cards/editedImageCache.ts",
-    "frontend/src/features/cards/imageValidation.ts",
-    "frontend/src/features/editor/stickerTray.ts",
-    "frontend/src/hooks/useActor.ts",
-    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/config/subscription.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
-    "frontend/src/main.tsx",
-    "frontend/src/screens/AddCardScreen.tsx",
     "frontend/src/screens/BinderLibraryScreen.tsx",
-    "frontend/src/screens/BinderSettingsScreen.tsx",
-    "frontend/src/screens/BinderViewScreen.tsx",
-    "frontend/src/screens/EditCardScreen.tsx",
-    "frontend/src/utils/urlParams.ts",
-    "frontend/tailwind.config.js",
+    "frontend/src/utils/backendErrorMessages.ts",
     "project_state.json"
   ]
 }

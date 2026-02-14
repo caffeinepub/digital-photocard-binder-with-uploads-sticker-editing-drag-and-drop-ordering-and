@@ -57,6 +57,10 @@ export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'avatarUrl' : IDL.Opt(IDL.Text),
 });
+export const SubscriptionStatus = IDL.Variant({
+  'pro' : IDL.Null,
+  'free' : IDL.Null,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -97,6 +101,7 @@ export const idlService = IDL.Service({
   'getBinders' : IDL.Func([], [IDL.Vec(BinderView)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -106,6 +111,11 @@ export const idlService = IDL.Service({
   'reorderCards' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateBinderTheme' : IDL.Func([IDL.Text, BinderTheme], [], []),
+  'updateSubscriptionStatus' : IDL.Func(
+      [IDL.Principal, SubscriptionStatus],
+      [],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -160,6 +170,10 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'avatarUrl' : IDL.Opt(IDL.Text),
   });
+  const SubscriptionStatus = IDL.Variant({
+    'pro' : IDL.Null,
+    'free' : IDL.Null,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -200,6 +214,7 @@ export const idlFactory = ({ IDL }) => {
     'getBinders' : IDL.Func([], [IDL.Vec(BinderView)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -209,6 +224,11 @@ export const idlFactory = ({ IDL }) => {
     'reorderCards' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateBinderTheme' : IDL.Func([IDL.Text, BinderTheme], [], []),
+    'updateSubscriptionStatus' : IDL.Func(
+        [IDL.Principal, SubscriptionStatus],
+        [],
+        [],
+      ),
   });
 };
 

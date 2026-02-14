@@ -20,13 +20,13 @@ export default function BinderSettingsScreen({ binderId, onBack }: BinderSetting
 
   const [theme, setTheme] = useState<BinderTheme>({
     coverColor: '#F4E8D8',
-    coverTexture: undefined,
+    coverTexture: '/assets/generated/binder-cover-beige-texture.dim_2048x2048.png',
     pageBackground: '#FFF8F0',
     cardFrameStyle: 'solid',
-    textColor: '#3D3D3D',
-    accentColor: '#E07A5F',
+    textColor: '#4A4A4A',
+    accentColor: '#C89B7B',
     borderStyle: 'solid',
-    backgroundPattern: undefined,
+    backgroundPattern: '/assets/generated/binder-page-light-texture.dim_2048x2048.png',
   });
 
   useEffect(() => {
@@ -49,8 +49,8 @@ export default function BinderSettingsScreen({ binderId, onBack }: BinderSetting
   if (!binder) {
     return (
       <div className="text-center py-16">
-        <p className="text-muted-foreground">Binder not found</p>
-        <Button onClick={onBack} className="mt-4 rounded-xl">
+        <p className="text-binder-text-muted">Binder not found</p>
+        <Button onClick={onBack} className="mt-4 rounded-xl bg-binder-accent hover:bg-binder-accent-hover">
           Go Back
         </Button>
       </div>
@@ -64,107 +64,119 @@ export default function BinderSettingsScreen({ binderId, onBack }: BinderSetting
           onClick={onBack}
           variant="outline"
           size="icon"
-          className="rounded-full border-2 border-sage/30 hover:border-coral"
+          className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h2 className="text-4xl font-bold text-charcoal font-handwriting">
+          <h2 className="text-4xl font-bold text-binder-text font-display">
             Customize Binder
           </h2>
-          <p className="text-muted-foreground">{binder.name}</p>
+          <p className="text-binder-text-muted">{binder.name}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="rounded-3xl border-4 border-sage/20 bg-white/80 backdrop-blur-sm">
+        <Card className="rounded-2xl border border-binder-border bg-binder-surface/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-2xl font-handwriting">Theme Settings</CardTitle>
+            <CardTitle className="text-2xl font-display text-binder-text">Theme Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label>Cover Color</Label>
+              <Label className="text-binder-text">Cover Color</Label>
               <div className="flex gap-3">
                 <Input
                   type="color"
                   value={theme.coverColor}
                   onChange={(e) => setTheme({ ...theme, coverColor: e.target.value })}
-                  className="w-20 h-12 rounded-xl cursor-pointer"
+                  className="w-20 h-12 rounded-xl cursor-pointer bg-binder-surface border-binder-border"
                 />
                 <Input
                   type="text"
                   value={theme.coverColor}
                   onChange={(e) => setTheme({ ...theme, coverColor: e.target.value })}
-                  className="flex-1 rounded-xl border-2 border-sage/30"
+                  className="flex-1 rounded-xl border border-binder-border bg-binder-surface text-binder-text"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Cover Texture</Label>
+              <Label className="text-binder-text">Cover Texture</Label>
               <Select
                 value={theme.coverTexture || 'none'}
                 onValueChange={(value) =>
                   setTheme({ ...theme, coverTexture: value === 'none' ? undefined : value })
                 }
               >
-                <SelectTrigger className="rounded-xl border-2 border-sage/30">
+                <SelectTrigger className="rounded-xl border border-binder-border bg-binder-surface text-binder-text">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="/assets/generated/binder-cover-beige-texture.dim_2048x2048.png">
+                    Beige Linen Texture
+                  </SelectItem>
                   <SelectItem value="/assets/generated/binder-cover-texture.dim_2048x2048.png">
-                    Textured
+                    Light Texture
+                  </SelectItem>
+                  <SelectItem value="/assets/generated/binder-cover-dark-texture.dim_2048x2048.png">
+                    Dark Texture
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Page Background</Label>
+              <Label className="text-binder-text">Page Background</Label>
               <div className="flex gap-3">
                 <Input
                   type="color"
                   value={theme.pageBackground}
                   onChange={(e) => setTheme({ ...theme, pageBackground: e.target.value })}
-                  className="w-20 h-12 rounded-xl cursor-pointer"
+                  className="w-20 h-12 rounded-xl cursor-pointer bg-binder-surface border-binder-border"
                 />
                 <Input
                   type="text"
                   value={theme.pageBackground}
                   onChange={(e) => setTheme({ ...theme, pageBackground: e.target.value })}
-                  className="flex-1 rounded-xl border-2 border-sage/30"
+                  className="flex-1 rounded-xl border border-binder-border bg-binder-surface text-binder-text"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Page Pattern</Label>
+              <Label className="text-binder-text">Page Pattern</Label>
               <Select
                 value={theme.backgroundPattern || 'none'}
                 onValueChange={(value) =>
                   setTheme({ ...theme, backgroundPattern: value === 'none' ? undefined : value })
                 }
               >
-                <SelectTrigger className="rounded-xl border-2 border-sage/30">
+                <SelectTrigger className="rounded-xl border border-binder-border bg-binder-surface text-binder-text">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="/assets/generated/binder-page-light-texture.dim_2048x2048.png">
+                    Light Paper Texture
+                  </SelectItem>
                   <SelectItem value="/assets/generated/page-paper-texture.dim_2048x2048.png">
-                    Paper Texture
+                    Cream Paper Texture
+                  </SelectItem>
+                  <SelectItem value="/assets/generated/binder-page-dark-texture.dim_2048x2048.png">
+                    Dark Paper Texture
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Card Frame Style</Label>
+              <Label className="text-binder-text">Card Frame Style</Label>
               <Select
                 value={theme.cardFrameStyle}
                 onValueChange={(value) => setTheme({ ...theme, cardFrameStyle: value })}
               >
-                <SelectTrigger className="rounded-xl border-2 border-sage/30">
+                <SelectTrigger className="rounded-xl border border-binder-border bg-binder-surface text-binder-text">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -177,32 +189,32 @@ export default function BinderSettingsScreen({ binderId, onBack }: BinderSetting
             </div>
 
             <div className="space-y-2">
-              <Label>Accent Color</Label>
+              <Label className="text-binder-text">Accent Color</Label>
               <div className="flex gap-3">
                 <Input
                   type="color"
                   value={theme.accentColor}
                   onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
-                  className="w-20 h-12 rounded-xl cursor-pointer"
+                  className="w-20 h-12 rounded-xl cursor-pointer bg-binder-surface border-binder-border"
                 />
                 <Input
                   type="text"
                   value={theme.accentColor}
                   onChange={(e) => setTheme({ ...theme, accentColor: e.target.value })}
-                  className="flex-1 rounded-xl border-2 border-sage/30"
+                  className="flex-1 rounded-xl border border-binder-border bg-binder-surface text-binder-text"
                 />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-4 border-sage/20 bg-white/80 backdrop-blur-sm">
+        <Card className="rounded-2xl border border-binder-border bg-binder-surface/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-2xl font-handwriting">Preview</CardTitle>
+            <CardTitle className="text-2xl font-display text-binder-text">Preview</CardTitle>
           </CardHeader>
           <CardContent>
             <div
-              className="rounded-2xl p-6 min-h-[400px] border-4"
+              className="rounded-2xl p-6 min-h-[400px] border-2"
               style={{
                 backgroundColor: theme.pageBackground,
                 borderColor: theme.accentColor,
@@ -211,14 +223,14 @@ export default function BinderSettingsScreen({ binderId, onBack }: BinderSetting
               }}
             >
               <div
-                className="w-32 h-48 bg-white rounded-xl shadow-lg mx-auto"
+                className="w-32 h-48 bg-binder-card rounded-xl shadow-binder mx-auto"
                 style={{
-                  borderWidth: theme.cardFrameStyle === 'thick' ? '4px' : '2px',
+                  borderWidth: theme.cardFrameStyle === 'thick' ? '3px' : '2px',
                   borderStyle: theme.cardFrameStyle === 'dashed' ? 'dashed' : 'solid',
-                  borderColor: theme.cardFrameStyle === 'none' ? 'transparent' : '#e5c5b5',
+                  borderColor: theme.cardFrameStyle === 'none' ? 'transparent' : theme.accentColor,
                 }}
               >
-                <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                <div className="w-full h-full flex items-center justify-center text-xs text-binder-text-muted">
                   Card Preview
                 </div>
               </div>
@@ -231,14 +243,14 @@ export default function BinderSettingsScreen({ binderId, onBack }: BinderSetting
         <Button
           onClick={onBack}
           variant="outline"
-          className="flex-1 rounded-2xl h-12 border-2 border-sage/30"
+          className="flex-1 rounded-xl h-12 border border-binder-border bg-transparent text-binder-text hover:bg-binder-surface"
         >
           Cancel
         </Button>
         <Button
           onClick={handleSave}
           disabled={isPending}
-          className="flex-1 bg-coral hover:bg-coral-dark text-white rounded-2xl h-12"
+          className="flex-1 bg-binder-accent hover:bg-binder-accent-hover text-white rounded-xl h-12"
         >
           <Save className="w-5 h-5 mr-2" />
           {isPending ? 'Saving...' : 'Save Changes'}

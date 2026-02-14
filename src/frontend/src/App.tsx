@@ -1,5 +1,6 @@
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useQueries';
+import { useAccentColor } from './hooks/useAccentColor';
 import { useState } from 'react';
 import LoginPanel from './features/auth/LoginPanel';
 import ProfileSetupModal from './features/auth/ProfileSetupModal';
@@ -21,6 +22,9 @@ export default function App() {
   const { identity } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
   const [currentScreen, setCurrentScreen] = useState<Screen>({ type: 'library' });
+  
+  // Initialize accent color (applies to both authenticated and unauthenticated views)
+  useAccentColor();
 
   const isAuthenticated = !!identity;
   const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
@@ -35,10 +39,10 @@ export default function App() {
 
   if (profileLoading || !isFetched) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
+      <div className="min-h-screen flex items-center justify-center bg-binder-dark">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-coral border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your binders...</p>
+          <div className="w-12 h-12 border-4 border-binder-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-binder-text-muted">Loading your binders...</p>
         </div>
       </div>
     );

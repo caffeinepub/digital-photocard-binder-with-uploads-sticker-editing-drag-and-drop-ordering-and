@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useGetBinders, useReorderCards } from '../hooks/useQueries';
-import { getEditedImage, clearEditedImage } from '../features/cards/editedImageCache';
+import { useBinderPagination } from '../hooks/useBinderPagination';
+import { getEditedImage } from '../features/cards/editedImageCache';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Settings, GripVertical, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, Settings, GripVertical, Pencil, ChevronLeft, ChevronRight, BookHeart } from 'lucide-react';
+import BinderFrame from '../components/binder/BinderFrame';
+import BinderRingsOverlay from '../components/binder/BinderRingsOverlay';
+import PageSwipeContainer from '../components/binder/PageSwipeContainer';
 import type { Photocard } from '../backend';
 
 interface BinderViewScreenProps {
@@ -28,6 +32,16 @@ export default function BinderViewScreen({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
+  const {
+    currentPage,
+    totalPages,
+    currentCards,
+    nextPage,
+    prevPage,
+    hasNext,
+    hasPrev,
+  } = useBinderPagination(cards);
+
   useEffect(() => {
     if (binder) {
       setCards(binder.cards);
@@ -51,9 +65,13 @@ export default function BinderViewScreen({
       return;
     }
 
+    const pageOffset = currentPage * 12;
+    const globalDraggedIndex = pageOffset + draggedIndex;
+    const globalDropIndex = pageOffset + dropIndex;
+
     const newCards = [...cards];
-    const [draggedCard] = newCards.splice(draggedIndex, 1);
-    newCards.splice(dropIndex, 0, draggedCard);
+    const [draggedCard] = newCards.splice(globalDraggedIndex, 1);
+    newCards.splice(globalDropIndex, 0, draggedCard);
 
     setCards(newCards);
     setDraggedIndex(null);
@@ -68,8 +86,8 @@ export default function BinderViewScreen({
   if (!binder) {
     return (
       <div className="text-center py-16">
-        <p className="text-muted-foreground">Binder not found</p>
-        <Button onClick={onBack} className="mt-4 rounded-xl">
+        <p className="text-binder-text-muted">Binder not found</p>
+        <Button onClick={onBack} className="mt-4 rounded-xl bg-binder-accent hover:bg-binder-accent-hover">
           Go Back
         </Button>
       </div>
@@ -84,15 +102,15 @@ export default function BinderViewScreen({
             onClick={onBack}
             variant="outline"
             size="icon"
-            className="rounded-full border-2 border-sage/30 hover:border-coral"
+            className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h2 className="text-4xl font-bold text-charcoal font-handwriting">
+            <h2 className="text-4xl font-bold text-binder-text font-display">
               {binder.name}
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-binder-text-muted mt-1">
               {cards.length} {cards.length === 1 ? 'card' : 'cards'}
             </p>
           </div>
@@ -102,14 +120,14 @@ export default function BinderViewScreen({
           <Button
             onClick={onSettings}
             variant="outline"
-            className="rounded-2xl border-2 border-sage/30 hover:border-coral hover:bg-coral/5"
+            className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text"
           >
             <Settings className="w-5 h-5 mr-2" />
             Customize
           </Button>
           <Button
             onClick={onAddCard}
-            className="bg-coral hover:bg-coral-dark text-white rounded-2xl shadow-md"
+            className="rounded-lg bg-binder-accent hover:bg-binder-accent-hover text-white"
           >
             <Plus className="w-5 h-5 mr-2" />
             Add Card
@@ -117,127 +135,114 @@ export default function BinderViewScreen({
         </div>
       </div>
 
-      <div
-        className="rounded-3xl p-8 min-h-[500px] border-4"
-        style={{
-          backgroundColor: binder.theme.pageBackground,
-          borderColor: binder.theme.accentColor,
-          backgroundImage: binder.theme.backgroundPattern ? `url(${binder.theme.backgroundPattern})` : undefined,
-          backgroundSize: 'cover',
-        }}
-      >
-        {cards.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-lg text-muted-foreground mb-4">No cards yet</p>
-            <Button
-              onClick={onAddCard}
-              className="bg-coral hover:bg-coral-dark text-white rounded-2xl"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Add Your First Card
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {cards.map((card, index) => (
-              <PhotocardTile
-                key={card.id}
-                card={card}
-                index={index}
-                isDragging={draggedIndex === index}
-                isDragOver={dragOverIndex === index}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                onEdit={() => onEditCard(card.id)}
-                frameStyle={binder.theme.cardFrameStyle}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+      <div className="relative">
+        <BinderRingsOverlay />
+        <BinderFrame theme={binder.theme}>
+          <PageSwipeContainer
+            currentPage={currentPage}
+            onSwipeLeft={hasNext ? nextPage : undefined}
+            onSwipeRight={hasPrev ? prevPage : undefined}
+          >
+            {cards.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="w-24 h-24 bg-binder-accent/10 rounded-full flex items-center justify-center mb-6">
+                  <BookHeart className="w-12 h-12 text-binder-accent" />
+                </div>
+                <h3 className="text-2xl font-bold text-binder-text mb-2 font-display">
+                  Your binder is empty
+                </h3>
+                <p className="text-binder-text-muted mb-6 max-w-md">
+                  Start building your collection by adding your first photocard
+                </p>
+                <Button
+                  onClick={onAddCard}
+                  className="rounded-lg bg-binder-accent hover:bg-binder-accent-hover text-white"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add Your First Card
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mb-6">
+                  {currentCards.map((card, index) => {
+                    const editedImage = getEditedImage(card.id);
+                    const imageUrl = editedImage || card.image.getDirectURL();
+                    const isDragging = draggedIndex === index;
+                    const isDragOver = dragOverIndex === index;
 
-interface PhotocardTileProps {
-  card: Photocard;
-  index: number;
-  isDragging: boolean;
-  isDragOver: boolean;
-  onDragStart: (index: number) => void;
-  onDragOver: (e: React.DragEvent, index: number) => void;
-  onDrop: (e: React.DragEvent, index: number) => void;
-  onEdit: () => void;
-  frameStyle: string;
-}
+                    return (
+                      <div
+                        key={card.id}
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDrop={(e) => handleDrop(e, index)}
+                        className={`group relative aspect-[2/3] bg-binder-card rounded-xl overflow-hidden border-2 transition-all cursor-move ${
+                          isDragging
+                            ? 'opacity-50 scale-95 border-binder-accent'
+                            : isDragOver
+                            ? 'border-binder-accent scale-105 shadow-binder-lg'
+                            : 'border-binder-border hover:border-binder-accent shadow-binder'
+                        }`}
+                      >
+                        <img
+                          src={imageUrl}
+                          alt={card.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-2 left-2">
+                            <GripVertical className="w-5 h-5 text-white drop-shadow-lg" />
+                          </div>
+                          <button
+                            onClick={() => onEditCard(card.id)}
+                            className="absolute bottom-2 right-2 p-2 bg-binder-accent hover:bg-binder-accent-hover text-white rounded-lg shadow-lg transition-colors"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        </div>
+                        {card.quantity > 1 && (
+                          <div className="absolute top-2 right-2 bg-binder-accent text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                            ×{card.quantity}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
 
-function PhotocardTile({
-  card,
-  index,
-  isDragging,
-  isDragOver,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  onEdit,
-  frameStyle,
-}: PhotocardTileProps) {
-  const [imageUrl, setImageUrl] = useState<string>('');
-
-  useEffect(() => {
-    const editedImage = getEditedImage(card.id);
-    if (editedImage) {
-      setImageUrl(editedImage);
-    } else {
-      setImageUrl(card.image.getDirectURL());
-    }
-  }, [card.id, card.image]);
-
-  return (
-    <div
-      draggable
-      onDragStart={() => onDragStart(index)}
-      onDragOver={(e) => onDragOver(e, index)}
-      onDrop={(e) => onDrop(e, index)}
-      className={`group relative bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-200 cursor-move ${
-        isDragging ? 'opacity-50 scale-95' : ''
-      } ${isDragOver ? 'ring-4 ring-coral' : ''} hover:shadow-2xl hover:scale-105`}
-      style={{
-        borderWidth: frameStyle === 'thick' ? '4px' : '2px',
-        borderStyle: frameStyle === 'dashed' ? 'dashed' : 'solid',
-        borderColor: frameStyle === 'none' ? 'transparent' : '#e5c5b5',
-      }}
-    >
-      <div className="aspect-[2/3] relative">
-        <img
-          src={imageUrl}
-          alt={card.name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        
-        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="bg-white/90 rounded-full p-1.5 cursor-grab active:cursor-grabbing">
-            <GripVertical className="w-4 h-4 text-charcoal" />
-          </div>
-        </div>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          className="absolute top-2 right-2 bg-coral hover:bg-coral-dark text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-        >
-          <Pencil className="w-4 h-4" />
-        </button>
-
-        <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <p className="text-white text-sm font-medium truncate drop-shadow-lg">
-            {card.name}
-          </p>
-        </div>
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-4 pt-4 border-t border-binder-border">
+                    <Button
+                      onClick={prevPage}
+                      disabled={!hasPrev}
+                      variant="outline"
+                      size="sm"
+                      className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text disabled:opacity-30"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      Previous
+                    </Button>
+                    <span className="text-sm text-binder-text-muted font-medium">
+                      Page {currentPage + 1} of {totalPages}
+                    </span>
+                    <Button
+                      onClick={nextPage}
+                      disabled={!hasNext}
+                      variant="outline"
+                      size="sm"
+                      className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text disabled:opacity-30"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </PageSwipeContainer>
+        </BinderFrame>
       </div>
     </div>
   );

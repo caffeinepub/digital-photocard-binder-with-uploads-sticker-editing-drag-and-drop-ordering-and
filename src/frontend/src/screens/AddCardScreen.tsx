@@ -73,7 +73,7 @@ export default function AddCardScreen({ binderId, onBack, onSuccess }: AddCardSc
           onClick={onBack}
           variant="outline"
           size="icon"
-          className="rounded-full border-2 border-sage/30 hover:border-coral"
+          className="rounded-full border-2 border-sage/30 hover:border-binder-accent"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -95,14 +95,14 @@ export default function AddCardScreen({ binderId, onBack, onSuccess }: AddCardSc
                 value={cardName}
                 onChange={(e) => setCardName(e.target.value)}
                 placeholder="e.g., Jungkook - Butter"
-                className="rounded-xl border-2 border-sage/30 focus:border-coral"
+                className="rounded-xl border-2 border-sage/30 focus:border-binder-accent"
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="card-image">Image</Label>
-              <div className="border-4 border-dashed border-sage/30 rounded-2xl p-8 text-center hover:border-coral transition-colors">
+              <div className="border-4 border-dashed border-sage/30 rounded-2xl p-8 text-center hover:border-binder-accent transition-colors">
                 <input
                   id="card-image"
                   type="file"
@@ -147,7 +147,7 @@ export default function AddCardScreen({ binderId, onBack, onSuccess }: AddCardSc
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Uploading...</span>
-                  <span className="text-coral font-medium">{uploadProgress}%</span>
+                  <span className="text-binder-accent font-medium">{uploadProgress}%</span>
                 </div>
                 <Progress value={uploadProgress} className="h-2" />
               </div>
@@ -166,7 +166,7 @@ export default function AddCardScreen({ binderId, onBack, onSuccess }: AddCardSc
               <Button
                 type="submit"
                 disabled={!selectedFile || !cardName.trim() || isPending}
-                className="flex-1 bg-coral hover:bg-coral-dark text-white rounded-xl"
+                className="flex-1 bg-binder-accent hover:bg-binder-accent-hover text-white rounded-xl"
               >
                 {isPending ? (
                   <>

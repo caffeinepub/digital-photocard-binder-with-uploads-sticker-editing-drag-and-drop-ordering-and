@@ -37,6 +37,8 @@ export interface Photocard {
   'image' : ExternalBlob,
   'position' : CardPosition,
 }
+export type SubscriptionStatus = { 'pro' : null } |
+  { 'free' : null };
 export type Time = bigint;
 export interface UserProfile {
   'displayName' : [] | [string],
@@ -84,11 +86,16 @@ export interface _SERVICE {
   'getBinders' : ActorMethod<[], Array<BinderView>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getSubscriptionStatus' : ActorMethod<[], SubscriptionStatus>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'reorderCards' : ActorMethod<[string, Array<string>], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateBinderTheme' : ActorMethod<[string, BinderTheme], undefined>,
+  'updateSubscriptionStatus' : ActorMethod<
+    [Principal, SubscriptionStatus],
+    undefined
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

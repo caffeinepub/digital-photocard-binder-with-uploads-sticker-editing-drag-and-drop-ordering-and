@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { BinderView, BinderTheme, UserProfile, CardPosition } from '../backend';
+import type { BinderView, BinderTheme, UserProfile, CardPosition, SubscriptionStatus } from '../backend';
 import { ExternalBlob } from '../backend';
 
 export function useGetCallerUserProfile() {
@@ -38,6 +38,19 @@ export function useSaveCallerUserProfile() {
   });
 }
 
+export function useGetSubscriptionStatus() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<SubscriptionStatus>({
+    queryKey: ['subscriptionStatus'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getSubscriptionStatus();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
 export function useGetBinders() {
   const { actor, isFetching } = useActor();
 
@@ -62,6 +75,10 @@ export function useCreateBinder() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+    onError: (error) => {
+      // Log detailed error for debugging
+      console.error('Binder creation failed:', error);
     },
   });
 }

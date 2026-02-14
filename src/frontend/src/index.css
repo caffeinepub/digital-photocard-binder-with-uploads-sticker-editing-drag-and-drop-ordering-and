@@ -35,6 +35,16 @@
         --coral-dark: 0.55 0.18 25;
         --charcoal: 0.25 0.02 30;
         
+        /* Soft beige binder theme colors */
+        --binder-dark: 0.94 0.03 55;
+        --binder-surface: 0.96 0.02 58;
+        --binder-card: 0.98 0.01 60;
+        --binder-border: 0.85 0.03 50;
+        --binder-text: 0.30 0.02 35;
+        --binder-text-muted: 0.55 0.02 40;
+        --binder-accent: 0.62 0.12 30;
+        --binder-accent-hover: 0.58 0.14 30;
+        
         --sidebar: 0.99 0.01 60;
         --sidebar-foreground: 0.25 0.02 30;
         --sidebar-primary: 0.65 0.15 25;
@@ -62,34 +72,27 @@
         --accent-foreground: 0.97 0.02 60;
         --destructive: 0.704 0.191 22.216;
         --destructive-foreground: 0.25 0.02 30;
-        --border: 0.35 0.02 40;
-        --input: 0.35 0.02 40;
+        --border: 0.30 0.02 35;
+        --input: 0.30 0.02 35;
         --ring: 0.65 0.15 25;
-        
-        --cream: 0.30 0.02 35;
-        --peach: 0.35 0.05 45;
-        --sage: 0.45 0.08 140;
-        --coral: 0.65 0.15 25;
-        --coral-dark: 0.55 0.18 25;
-        --charcoal: 0.85 0.02 60;
         
         --sidebar: 0.25 0.02 30;
         --sidebar-foreground: 0.97 0.02 60;
         --sidebar-primary: 0.65 0.15 25;
-        --sidebar-primary-foreground: 0.97 0.02 60;
+        --sidebar-primary-foreground: 0.99 0.01 60;
         --sidebar-accent: 0.30 0.02 35;
         --sidebar-accent-foreground: 0.97 0.02 60;
-        --sidebar-border: 0.35 0.02 40;
+        --sidebar-border: 0.30 0.02 35;
         --sidebar-ring: 0.65 0.15 25;
     }
+}
 
+@layer base {
     * {
         @apply border-border;
     }
-    
     body {
         @apply bg-background text-foreground;
-        font-feature-settings: "rlig" 1, "calt" 1;
     }
 }
 
@@ -115,22 +118,111 @@
     .text-coral {
         color: oklch(var(--coral));
     }
-    .text-sage {
-        color: oklch(var(--sage));
-    }
     .border-coral {
         border-color: oklch(var(--coral));
     }
     .border-sage {
         border-color: oklch(var(--sage));
     }
-    .fill-coral {
-        fill: oklch(var(--coral));
+    
+    /* Soft beige binder theme utilities */
+    .bg-binder-dark {
+        background-color: oklch(var(--binder-dark));
+    }
+    .bg-binder-surface {
+        background-color: oklch(var(--binder-surface));
+    }
+    .bg-binder-card {
+        background-color: oklch(var(--binder-card));
+    }
+    .border-binder-border {
+        border-color: oklch(var(--binder-border));
+    }
+    .text-binder-text {
+        color: oklch(var(--binder-text));
+    }
+    .text-binder-text-muted {
+        color: oklch(var(--binder-text-muted));
+    }
+    .bg-binder-accent {
+        background-color: oklch(var(--binder-accent));
+    }
+    .bg-binder-accent-hover {
+        background-color: oklch(var(--binder-accent-hover));
+    }
+    .text-binder-accent {
+        color: oklch(var(--binder-accent));
+    }
+    .border-binder-accent {
+        border-color: oklch(var(--binder-accent));
+    }
+    .fill-binder-accent {
+        fill: oklch(var(--binder-accent));
     }
     
+    /* Binder-specific shadows - softer for light theme */
+    .shadow-binder {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+    .shadow-binder-lg {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+}
+
+@layer components {
     .font-handwriting {
-        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive;
+        font-family: 'Caveat', cursive;
+    }
+    
+    .font-display {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
         font-weight: 700;
-        letter-spacing: 0.02em;
+        letter-spacing: -0.02em;
+    }
+}
+
+@keyframes page-flip-left {
+    0% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(-20px) rotateY(-5deg);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes page-flip-right {
+    0% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(20px) rotateY(5deg);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+.animate-page-flip-left {
+    animation: page-flip-left 0.5s ease-out;
+}
+
+.animate-page-flip-right {
+    animation: page-flip-right 0.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-page-flip-left,
+    .animate-page-flip-right {
+        animation: none;
+        transition: opacity 0.2s ease-out;
     }
 }

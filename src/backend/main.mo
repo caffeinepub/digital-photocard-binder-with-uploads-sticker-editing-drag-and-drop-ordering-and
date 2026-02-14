@@ -12,11 +12,18 @@ import Principal "mo:core/Principal";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
+
+
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
   include MixinStorage();
+
+  public type SubscriptionStatus = {
+    #free;
+    #pro;
+  };
 
   public type CardPosition = {
     page : Nat;
@@ -125,6 +132,27 @@ actor {
 
   let users = Map.empty<Principal, UserData>();
   let userProfiles = Map.empty<Principal, UserProfile>();
+  let subscriptionStatus = Map.empty<Principal, SubscriptionStatus>();
+
+  // Admin-only function to update a user's subscription status
+  // This should be called by payment processing or admin interface
+  public shared ({ caller }) func updateSubscriptionStatus(user : Principal, status : SubscriptionStatus) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update subscription status");
+    };
+    subscriptionStatus.add(user, status);
+  };
+
+  // Query the caller's own subscription status
+  public query ({ caller }) func getSubscriptionStatus() : async SubscriptionStatus {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view subscription status");
+    };
+    switch (subscriptionStatus.get(caller)) {
+      case (null) { #free };
+      case (?status) { status };
+    };
+  };
 
   // User profile management functions
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -148,12 +176,31 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  // Binder management functions
+  // Binder management functions with subscription-based limits
   public shared ({ caller }) func createBinder(name : Text, theme : BinderTheme) : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create binders");
     };
     let userData = getOrCreateUser(caller);
+
+    // Determine the user's subscription status
+    let status = switch (subscriptionStatus.get(caller)) {
+      case (null) { #free };
+      case (?status) { status };
+    };
+
+    // Enforce binder limits based on subscription status
+    let currentBinderCount = userData.binders.size();
+    let maxBinders = switch (status) {
+      case (#free) { 2 };
+      case (#pro) { 5 };
+    };
+
+    if (currentBinderCount >= maxBinders) {
+      Runtime.trap("Binder limit reached: Upgrade your subscription to add more binders");
+    };
+
+    // Proceed with binder creation
     let binderId = Time.now().toText();
     let newBinder = Binder.new(binderId, name, theme);
     userData.binders.add(binderId, newBinder);

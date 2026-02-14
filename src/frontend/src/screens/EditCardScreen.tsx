@@ -74,7 +74,10 @@ export default function EditCardScreen({ binderId, cardId, onBack, onSave }: Edi
       ctx.restore();
 
       if (sticker.id === selectedStickerId) {
-        ctx.strokeStyle = '#E07A5F';
+        const accentColor = getComputedStyle(document.documentElement)
+          .getPropertyValue('--binder-accent')
+          .trim();
+        ctx.strokeStyle = accentColor ? `oklch(${accentColor})` : '#E07A5F';
         ctx.lineWidth = 3;
         ctx.setLineDash([5, 5]);
         const size = Math.max(stickerData.width, stickerData.height) * sticker.scale;
@@ -172,39 +175,34 @@ export default function EditCardScreen({ binderId, cardId, onBack, onSave }: Edi
     );
   };
 
-  const scaleSelectedSticker = (delta: number) => {
-    if (!selectedStickerId) return;
-    setStickers(
-      stickers.map((s) =>
-        s.id === selectedStickerId
-          ? { ...s, scale: Math.max(0.5, Math.min(3, s.scale + delta)) }
-          : s
-      )
-    );
-  };
-
   const deleteSelectedSticker = () => {
     if (!selectedStickerId) return;
     setStickers(stickers.filter((s) => s.id !== selectedStickerId));
     setSelectedStickerId(null);
   };
 
-  const handleSave = () => {
-    if (!canvasRef.current || !card) return;
+  const handleSave = async () => {
+    if (!canvasRef.current) return;
 
     canvasRef.current.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      saveEditedImage(card.id, url);
-      onSave();
+      if (blob) {
+        // Convert Blob to data URL for localStorage
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl = reader.result as string;
+          saveEditedImage(cardId, dataUrl);
+          onSave();
+        };
+        reader.readAsDataURL(blob);
+      }
     }, 'image/png');
   };
 
-  if (!card || !binder) {
+  if (!card) {
     return (
-      <div className="text-center py-16">
+      <div className="max-w-4xl mx-auto text-center py-16">
         <p className="text-muted-foreground">Card not found</p>
-        <Button onClick={onBack} className="mt-4 rounded-xl">
+        <Button onClick={onBack} className="mt-4 bg-binder-accent hover:bg-binder-accent-hover text-white rounded-xl">
           Go Back
         </Button>
       </div>
@@ -212,78 +210,45 @@ export default function EditCardScreen({ binderId, cardId, onBack, onSave }: Edi
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex items-center gap-4 mb-8">
-        <Button
-          onClick={onBack}
-          variant="outline"
-          size="icon"
-          className="rounded-full border-2 border-sage/30 hover:border-coral"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <div>
+    <div className="max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={onBack}
+            variant="outline"
+            size="icon"
+            className="rounded-full border-2 border-sage/30 hover:border-binder-accent"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
           <h2 className="text-4xl font-bold text-charcoal font-handwriting">
             Edit Card
           </h2>
-          <p className="text-muted-foreground">{card.name}</p>
         </div>
+        <Button
+          onClick={handleSave}
+          className="bg-binder-accent hover:bg-binder-accent-hover text-white rounded-xl h-12 px-6"
+        >
+          <Save className="w-5 h-5 mr-2" />
+          Save Changes
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
           <Card className="rounded-3xl border-4 border-sage/20 bg-white/80 backdrop-blur-sm overflow-hidden">
             <CardContent className="p-6">
-              <div className="flex justify-center">
+              <div className="relative bg-binder-dark rounded-2xl p-4 flex items-center justify-center">
                 <canvas
                   ref={canvasRef}
                   onMouseDown={handleCanvasMouseDown}
                   onMouseMove={handleCanvasMouseMove}
                   onMouseUp={handleCanvasMouseUp}
                   onMouseLeave={handleCanvasMouseUp}
-                  className="max-w-full h-auto border-2 border-sage/20 rounded-xl cursor-crosshair shadow-lg"
-                  style={{ maxHeight: '70vh' }}
+                  className="max-w-full max-h-[600px] cursor-move rounded-xl shadow-binder-lg"
+                  style={{ imageRendering: 'auto' }}
                 />
               </div>
-
-              {selectedStickerId && (
-                <div className="flex justify-center gap-3 mt-6">
-                  <Button
-                    onClick={rotateSelectedSticker}
-                    variant="outline"
-                    size="sm"
-                    className="rounded-xl"
-                  >
-                    <RotateCw className="w-4 h-4 mr-2" />
-                    Rotate
-                  </Button>
-                  <Button
-                    onClick={() => scaleSelectedSticker(0.2)}
-                    variant="outline"
-                    size="sm"
-                    className="rounded-xl"
-                  >
-                    Bigger
-                  </Button>
-                  <Button
-                    onClick={() => scaleSelectedSticker(-0.2)}
-                    variant="outline"
-                    size="sm"
-                    className="rounded-xl"
-                  >
-                    Smaller
-                  </Button>
-                  <Button
-                    onClick={deleteSelectedSticker}
-                    variant="destructive"
-                    size="sm"
-                    className="rounded-xl"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
@@ -291,19 +256,20 @@ export default function EditCardScreen({ binderId, cardId, onBack, onSave }: Edi
         <div className="space-y-6">
           <Card className="rounded-3xl border-4 border-sage/20 bg-white/80 backdrop-blur-sm">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4 font-handwriting">Stickers</h3>
+              <h3 className="text-lg font-bold text-charcoal mb-4 font-handwriting">
+                Stickers
+              </h3>
               <div className="grid grid-cols-3 gap-3">
                 {STICKERS.map((sticker) => (
                   <button
                     key={sticker.type}
                     onClick={() => addSticker(sticker.type)}
-                    className="aspect-square bg-cream hover:bg-peach rounded-xl border-2 border-sage/30 hover:border-coral transition-all p-2 flex items-center justify-center"
-                    title={sticker.label}
+                    className="aspect-square border-2 border-sage/30 rounded-xl hover:border-binder-accent hover:bg-binder-accent/5 transition-all p-2 bg-white"
                   >
                     {sticker.image && (
                       <img
                         src={sticker.image.src}
-                        alt={sticker.label}
+                        alt={sticker.type}
                         className="w-full h-full object-contain"
                       />
                     )}
@@ -313,23 +279,41 @@ export default function EditCardScreen({ binderId, cardId, onBack, onSave }: Edi
             </CardContent>
           </Card>
 
-          <div className="flex flex-col gap-3">
-            <Button
-              onClick={handleSave}
-              className="w-full bg-coral hover:bg-coral-dark text-white rounded-2xl h-12"
-            >
-              <Save className="w-5 h-5 mr-2" />
-              Save Changes
-            </Button>
-            <Button
-              onClick={onBack}
-              variant="outline"
-              className="w-full rounded-2xl h-12 border-2 border-sage/30"
-            >
-              <X className="w-5 h-5 mr-2" />
-              Cancel
-            </Button>
-          </div>
+          {selectedStickerId && (
+            <Card className="rounded-3xl border-4 border-binder-accent/30 bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-bold text-charcoal mb-4 font-handwriting">
+                  Edit Sticker
+                </h3>
+                <div className="space-y-3">
+                  <Button
+                    onClick={rotateSelectedSticker}
+                    variant="outline"
+                    className="w-full rounded-xl border-2 border-sage/30 hover:border-binder-accent"
+                  >
+                    <RotateCw className="w-4 h-4 mr-2" />
+                    Rotate
+                  </Button>
+                  <Button
+                    onClick={deleteSelectedSticker}
+                    variant="outline"
+                    className="w-full rounded-xl border-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                  <Button
+                    onClick={() => setSelectedStickerId(null)}
+                    variant="ghost"
+                    className="w-full rounded-xl"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Deselect
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

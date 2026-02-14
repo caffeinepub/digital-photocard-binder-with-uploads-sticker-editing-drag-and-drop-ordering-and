@@ -14,6 +14,16 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
+export interface BinderTheme {
+    pageBackground: string;
+    coverColor: string;
+    coverTexture?: string;
+    borderStyle: string;
+    accentColor: string;
+    backgroundPattern?: string;
+    cardFrameStyle: string;
+    textColor: string;
+}
 export interface BinderView {
     id: string;
     theme: BinderTheme;
@@ -34,20 +44,14 @@ export interface Photocard {
     image: ExternalBlob;
     position: CardPosition;
 }
-export interface BinderTheme {
-    pageBackground: string;
-    coverColor: string;
-    coverTexture?: string;
-    borderStyle: string;
-    accentColor: string;
-    backgroundPattern?: string;
-    cardFrameStyle: string;
-    textColor: string;
-}
 export interface UserProfile {
     displayName?: string;
     name: string;
     avatarUrl?: string;
+}
+export enum SubscriptionStatus {
+    pro = "pro",
+    free = "free"
 }
 export enum UserRole {
     admin = "admin",
@@ -62,9 +66,11 @@ export interface backendInterface {
     getBinders(): Promise<Array<BinderView>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getSubscriptionStatus(): Promise<SubscriptionStatus>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     reorderCards(binderId: string, newOrder: Array<string>): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateBinderTheme(binderId: string, newTheme: BinderTheme): Promise<void>;
+    updateSubscriptionStatus(user: Principal, status: SubscriptionStatus): Promise<void>;
 }
