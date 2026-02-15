@@ -1,56 +1,75 @@
 {
   "kind": "build_request",
-  "title": "Generate vintage-style price tag sticker PNG assets",
+  "title": "Add GoodNotes-ready PDF export and sharing for binder pages",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Generate 3 separate vintage-style \"Price Tag\" sticker images as transparent-background PNGs, each isolated with no shadows or background layer outside the sticker shape. Each sticker must have a slight paper texture and a small peeled corner to look like a physical sticker.\n\nText requirements per sticker:\n- Sticker 1: \"MINT\" in green\n- Sticker 2: \"NEAR MINT\" in blue\n- Sticker 3: \"PLAYED\" in orange",
-      "target": "unknown",
+      "text": "Add a binder PDF export flow that generates a GoodNotes-friendly PDF of the currently viewed binder page (the 12-card grid) with the same visual overlays (edited image if present, rarity badge, condition sticker, and legendary glint) and without app UI chrome (no buttons/headers), suitable for import into GoodNotes.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "Generate a set of vintage-style 'Price Tag' stickers. One says 'MINT' in green, one says 'NEAR MINT' in blue, and one says 'PLAYED' in orange. Give them a slight paper texture and a tiny bit of 'peeling' at one corner to make them look like real physical stickers. Isolated on transparent background."
+          "Optimise it for the ability to share and import as pdf suitable for goodnotes"
         ]
       },
       "acceptanceCriteria": [
-        "Three PNG files are produced, one per sticker label (MINT / NEAR MINT / PLAYED).",
-        "Each PNG has a transparent background with only the sticker artwork present (no rectangular background fill).",
-        "Each sticker has visible subtle paper texture and a small peeled-corner detail.",
-        "Sticker text matches exactly and uses the specified text color (green/blue/orange), while maintaining a cohesive vintage price-tag style across all three."
+        "From the binder view screen, the user can export the current page as a PDF file.",
+        "The exported PDF page contains the 12-card layout exactly as shown (including overlays and any locally edited card images from the edited image cache).",
+        "The exported PDF does not include navigation/buttons/controls (no app header/footer/back/add/settings UI).",
+        "The exported PDF renders reliably (no missing images; overlays are present; no transparent/black boxes)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add the generated sticker PNGs to the frontend static assets under frontend/public/assets/generated and ensure they can be loaded directly by the browser via /assets/generated/<filename>.",
+      "text": "Provide export settings optimized for GoodNotes, including selectable page size (at minimum A4 Portrait and US Letter Portrait) and a high-quality output mode appropriate for handwriting/annotation (crisp text/lines and non-blurry images when zooming in within GoodNotes).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
+        ],
+        "quotes": [
+          "Optimise it for the ability to share and import as pdf suitable for goodnotes"
         ]
       },
       "acceptanceCriteria": [
-        "The three generated PNGs exist under frontend/public/assets/generated.",
-        "Requesting each asset at /assets/generated/<filename> returns the image successfully in the deployed app."
+        "The user can choose between A4 Portrait and US Letter Portrait before exporting.",
+        "Exported PDFs are high-resolution enough to remain clear when zoomed in within GoodNotes (no obviously pixelated layout at typical GoodNotes zoom levels).",
+        "The exported layout preserves card aspect ratios and spacing and is centered on the page with consistent margins."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add a \"Share\" option for the generated PDF that uses the browser’s native share mechanism when available (and falls back to downloading the PDF when sharing is not supported), so the PDF can be sent directly to GoodNotes (or saved to Files for later import).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Optimise it for the ability to share and import as pdf suitable for goodnotes"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If the browser supports file sharing, the user can trigger a native share sheet with the generated PDF attached.",
+        "If native sharing is unavailable, the user can still download the generated PDF file.",
+        "The PDF filename is deterministic and user-friendly (includes binder name and page number)."
       ]
     }
   ],
   "constraints": [
-    "Do not add a non-transparent background; stickers must be isolated on a transparent background.",
-    "Keep all user-facing text in English (MINT, NEAR MINT, PLAYED)."
+    "Do not modify files in frontend/immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui).",
+    "Keep all backend logic in the single Motoko actor (backend/main.mo); do not introduce additional backend services."
   ],
   "nonGoals": [
-    "Do not change backend canister logic.",
-    "Do not modify the existing sticker sprite-sheet system unless explicitly requested."
+    "Implementing direct GoodNotes integration APIs (GoodNotes does not provide a public import API for web apps).",
+    "Adding real-time collaboration or syncing exported PDFs across devices.",
+    "Backend-side PDF generation (export should be done client-side)."
   ],
   "imageRequirements": {
-    "required": [
-      "Vintage price tag sticker with paper texture and small peeled corner, text \"MINT\" (price-tag-mint.dim_512x512.png)",
-      "Vintage price tag sticker with paper texture and small peeled corner, text \"NEAR MINT\" (price-tag-near-mint.dim_512x512.png)",
-      "Vintage price tag sticker with paper texture and small peeled corner, text \"PLAYED\" (price-tag-played.dim_512x512.png)"
-    ],
+    "required": [],
     "edits": []
   }
 }

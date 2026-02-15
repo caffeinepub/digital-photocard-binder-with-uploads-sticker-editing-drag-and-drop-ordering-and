@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { BinderView, BinderTheme, UserProfile, CardPosition, SubscriptionStatus } from '../backend';
-import { ExternalBlob } from '../backend';
+import { ExternalBlob, CardRarity, CardCondition } from '../backend';
 import { withTimeout } from '../utils/promiseTimeout';
 
 export function useGetCallerUserProfile() {
@@ -160,7 +160,16 @@ export function useAddPhotocard() {
         blob = blob.withUploadProgress(onProgress);
       }
       
-      return actor.addPhotocard(binderId, name, blob, position, quantity);
+      // Add default rarity and condition values for new cards
+      return actor.addPhotocard(
+        binderId,
+        name,
+        blob,
+        position,
+        quantity,
+        CardRarity.none,
+        CardCondition.none
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['binders'] });

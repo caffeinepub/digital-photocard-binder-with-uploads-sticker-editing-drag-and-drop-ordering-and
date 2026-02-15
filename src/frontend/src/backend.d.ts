@@ -14,6 +14,24 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
+export interface BinderView {
+    id: string;
+    theme: BinderTheme;
+    created: Time;
+    cards: Array<Photocard>;
+    name: string;
+}
+export type Time = bigint;
+export interface Photocard {
+    id: string;
+    created: Time;
+    name: string;
+    quantity: bigint;
+    rarity: CardRarity;
+    image: ExternalBlob;
+    position: CardPosition;
+    condition: CardCondition;
+}
 export interface BinderTheme {
     pageBackground: string;
     coverColor: string;
@@ -24,30 +42,29 @@ export interface BinderTheme {
     cardFrameStyle: string;
     textColor: string;
 }
-export interface BinderView {
-    id: string;
-    theme: BinderTheme;
-    created: Time;
-    cards: Array<Photocard>;
-    name: string;
-}
 export interface CardPosition {
     page: bigint;
     slot: bigint;
-}
-export type Time = bigint;
-export interface Photocard {
-    id: string;
-    created: Time;
-    name: string;
-    quantity: bigint;
-    image: ExternalBlob;
-    position: CardPosition;
 }
 export interface UserProfile {
     displayName?: string;
     name: string;
     avatarUrl?: string;
+}
+export enum CardCondition {
+    played = "played",
+    fair = "fair",
+    good = "good",
+    mint = "mint",
+    none = "none",
+    nearMint = "nearMint"
+}
+export enum CardRarity {
+    ultraRare = "ultraRare",
+    legendary = "legendary",
+    none = "none",
+    rare = "rare",
+    common = "common"
 }
 export enum SubscriptionStatus {
     pro = "pro",
@@ -59,10 +76,11 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    addPhotocard(binderId: string, name: string, image: ExternalBlob, position: CardPosition, quantity: bigint): Promise<string>;
+    addPhotocard(binderId: string, name: string, image: ExternalBlob, position: CardPosition, quantity: bigint, rarity: CardRarity, condition: CardCondition): Promise<string>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createBinder(name: string, theme: BinderTheme): Promise<string>;
     deleteBinder(binderId: string): Promise<void>;
+    deletePhotocard(binderId: string, cardId: string): Promise<void>;
     getBinders(): Promise<Array<BinderView>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
@@ -72,5 +90,6 @@ export interface backendInterface {
     reorderCards(binderId: string, newOrder: Array<string>): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateBinderTheme(binderId: string, newTheme: BinderTheme): Promise<void>;
+    updatePhotocard(binderId: string, cardId: string, name: string, image: ExternalBlob, position: CardPosition, quantity: bigint, rarity: CardRarity, condition: CardCondition): Promise<void>;
     updateSubscriptionStatus(user: Principal, status: SubscriptionStatus): Promise<void>;
 }

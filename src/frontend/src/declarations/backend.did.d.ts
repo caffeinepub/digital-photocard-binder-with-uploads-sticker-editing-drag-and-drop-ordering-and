@@ -27,15 +27,28 @@ export interface BinderView {
   'cards' : Array<Photocard>,
   'name' : string,
 }
+export type CardCondition = { 'played' : null } |
+  { 'fair' : null } |
+  { 'good' : null } |
+  { 'mint' : null } |
+  { 'none' : null } |
+  { 'nearMint' : null };
 export interface CardPosition { 'page' : bigint, 'slot' : bigint }
+export type CardRarity = { 'ultraRare' : null } |
+  { 'legendary' : null } |
+  { 'none' : null } |
+  { 'rare' : null } |
+  { 'common' : null };
 export type ExternalBlob = Uint8Array;
 export interface Photocard {
   'id' : string,
   'created' : Time,
   'name' : string,
   'quantity' : bigint,
+  'rarity' : CardRarity,
   'image' : ExternalBlob,
   'position' : CardPosition,
+  'condition' : CardCondition,
 }
 export type SubscriptionStatus = { 'pro' : null } |
   { 'free' : null };
@@ -77,12 +90,21 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addPhotocard' : ActorMethod<
-    [string, string, ExternalBlob, CardPosition, bigint],
+    [
+      string,
+      string,
+      ExternalBlob,
+      CardPosition,
+      bigint,
+      CardRarity,
+      CardCondition,
+    ],
     string
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createBinder' : ActorMethod<[string, BinderTheme], string>,
   'deleteBinder' : ActorMethod<[string], undefined>,
+  'deletePhotocard' : ActorMethod<[string, string], undefined>,
   'getBinders' : ActorMethod<[], Array<BinderView>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
@@ -92,6 +114,19 @@ export interface _SERVICE {
   'reorderCards' : ActorMethod<[string, Array<string>], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateBinderTheme' : ActorMethod<[string, BinderTheme], undefined>,
+  'updatePhotocard' : ActorMethod<
+    [
+      string,
+      string,
+      string,
+      ExternalBlob,
+      CardPosition,
+      bigint,
+      CardRarity,
+      CardCondition,
+    ],
+    undefined
+  >,
   'updateSubscriptionStatus' : ActorMethod<
     [Principal, SubscriptionStatus],
     undefined

@@ -21,6 +21,21 @@ export const _CaffeineStorageRefillResult = IDL.Record({
 });
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const CardPosition = IDL.Record({ 'page' : IDL.Nat, 'slot' : IDL.Nat });
+export const CardRarity = IDL.Variant({
+  'ultraRare' : IDL.Null,
+  'legendary' : IDL.Null,
+  'none' : IDL.Null,
+  'rare' : IDL.Null,
+  'common' : IDL.Null,
+});
+export const CardCondition = IDL.Variant({
+  'played' : IDL.Null,
+  'fair' : IDL.Null,
+  'good' : IDL.Null,
+  'mint' : IDL.Null,
+  'none' : IDL.Null,
+  'nearMint' : IDL.Null,
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -42,8 +57,10 @@ export const Photocard = IDL.Record({
   'created' : Time,
   'name' : IDL.Text,
   'quantity' : IDL.Nat,
+  'rarity' : CardRarity,
   'image' : ExternalBlob,
   'position' : CardPosition,
+  'condition' : CardCondition,
 });
 export const BinderView = IDL.Record({
   'id' : IDL.Text,
@@ -91,13 +108,22 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addPhotocard' : IDL.Func(
-      [IDL.Text, IDL.Text, ExternalBlob, CardPosition, IDL.Nat],
+      [
+        IDL.Text,
+        IDL.Text,
+        ExternalBlob,
+        CardPosition,
+        IDL.Nat,
+        CardRarity,
+        CardCondition,
+      ],
       [IDL.Text],
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createBinder' : IDL.Func([IDL.Text, BinderTheme], [IDL.Text], []),
   'deleteBinder' : IDL.Func([IDL.Text], [], []),
+  'deletePhotocard' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'getBinders' : IDL.Func([], [IDL.Vec(BinderView)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -111,6 +137,20 @@ export const idlService = IDL.Service({
   'reorderCards' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateBinderTheme' : IDL.Func([IDL.Text, BinderTheme], [], []),
+  'updatePhotocard' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        ExternalBlob,
+        CardPosition,
+        IDL.Nat,
+        CardRarity,
+        CardCondition,
+      ],
+      [],
+      [],
+    ),
   'updateSubscriptionStatus' : IDL.Func(
       [IDL.Principal, SubscriptionStatus],
       [],
@@ -134,6 +174,21 @@ export const idlFactory = ({ IDL }) => {
   });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const CardPosition = IDL.Record({ 'page' : IDL.Nat, 'slot' : IDL.Nat });
+  const CardRarity = IDL.Variant({
+    'ultraRare' : IDL.Null,
+    'legendary' : IDL.Null,
+    'none' : IDL.Null,
+    'rare' : IDL.Null,
+    'common' : IDL.Null,
+  });
+  const CardCondition = IDL.Variant({
+    'played' : IDL.Null,
+    'fair' : IDL.Null,
+    'good' : IDL.Null,
+    'mint' : IDL.Null,
+    'none' : IDL.Null,
+    'nearMint' : IDL.Null,
+  });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -155,8 +210,10 @@ export const idlFactory = ({ IDL }) => {
     'created' : Time,
     'name' : IDL.Text,
     'quantity' : IDL.Nat,
+    'rarity' : CardRarity,
     'image' : ExternalBlob,
     'position' : CardPosition,
+    'condition' : CardCondition,
   });
   const BinderView = IDL.Record({
     'id' : IDL.Text,
@@ -204,13 +261,22 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addPhotocard' : IDL.Func(
-        [IDL.Text, IDL.Text, ExternalBlob, CardPosition, IDL.Nat],
+        [
+          IDL.Text,
+          IDL.Text,
+          ExternalBlob,
+          CardPosition,
+          IDL.Nat,
+          CardRarity,
+          CardCondition,
+        ],
         [IDL.Text],
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createBinder' : IDL.Func([IDL.Text, BinderTheme], [IDL.Text], []),
     'deleteBinder' : IDL.Func([IDL.Text], [], []),
+    'deletePhotocard' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'getBinders' : IDL.Func([], [IDL.Vec(BinderView)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -224,6 +290,20 @@ export const idlFactory = ({ IDL }) => {
     'reorderCards' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateBinderTheme' : IDL.Func([IDL.Text, BinderTheme], [], []),
+    'updatePhotocard' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          ExternalBlob,
+          CardPosition,
+          IDL.Nat,
+          CardRarity,
+          CardCondition,
+        ],
+        [],
+        [],
+      ),
     'updateSubscriptionStatus' : IDL.Func(
         [IDL.Principal, SubscriptionStatus],
         [],

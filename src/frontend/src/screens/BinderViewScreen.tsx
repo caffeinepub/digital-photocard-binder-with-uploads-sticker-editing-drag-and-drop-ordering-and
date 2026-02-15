@@ -2,11 +2,18 @@ import { useState, useEffect } from 'react';
 import { useGetBinders, useReorderCards } from '../hooks/useQueries';
 import { useBinderPagination } from '../hooks/useBinderPagination';
 import { getEditedImage } from '../features/cards/editedImageCache';
+import {
+  getConditionStickerPath,
+  getRarityBadgePath,
+  getGlintOverlayPath,
+  shouldShowGlint,
+} from '../features/cards/overlayAssets';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Settings, GripVertical, Pencil, ChevronLeft, ChevronRight, BookHeart } from 'lucide-react';
+import { ArrowLeft, Plus, Settings, GripVertical, Pencil, ChevronLeft, ChevronRight, BookHeart, FileDown } from 'lucide-react';
 import BinderFrame from '../components/binder/BinderFrame';
 import BinderRingsOverlay from '../components/binder/BinderRingsOverlay';
 import PageSwipeContainer from '../components/binder/PageSwipeContainer';
+import BinderPdfExportDialog from '../components/binder/BinderPdfExportDialog';
 import type { Photocard } from '../backend';
 
 interface BinderViewScreenProps {
@@ -31,6 +38,7 @@ export default function BinderViewScreen({
   const [cards, setCards] = useState<Photocard[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   const {
     currentPage,
@@ -117,6 +125,16 @@ export default function BinderViewScreen({
         </div>
 
         <div className="flex gap-3">
+          {cards.length > 0 && (
+            <Button
+              onClick={() => setShowExportDialog(true)}
+              variant="outline"
+              className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text"
+            >
+              <FileDown className="w-5 h-5 mr-2" />
+              Export PDF
+            </Button>
+          )}
           <Button
             onClick={onSettings}
             variant="outline"
@@ -171,6 +189,10 @@ export default function BinderViewScreen({
                     const isDragging = draggedIndex === index;
                     const isDragOver = dragOverIndex === index;
 
+                    const conditionStickerPath = getConditionStickerPath(card.condition);
+                    const rarityBadgePath = getRarityBadgePath(card.rarity);
+                    const showGlint = shouldShowGlint(card.rarity);
+
                     return (
                       <div
                         key={card.id}
@@ -186,11 +208,45 @@ export default function BinderViewScreen({
                             : 'border-binder-border hover:border-binder-accent shadow-binder'
                         }`}
                       >
-                        <img
-                          src={imageUrl}
-                          alt={card.name}
-                          className="w-full h-full object-cover"
-                        />
+                        {/* Card image container with overlays */}
+                        <div className="relative w-full h-full">
+                          <img
+                            src={imageUrl}
+                            alt={card.name}
+                            className="w-full h-full object-cover"
+                          />
+
+                          {/* Holographic glint overlay for legendary cards */}
+                          {showGlint && (
+                            <img
+                              src={getGlintOverlayPath()}
+                              alt="Holographic glint"
+                              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                              style={{ opacity: 0.5 }}
+                            />
+                          )}
+
+                          {/* Condition sticker - top right, -5 degree rotation */}
+                          {conditionStickerPath && (
+                            <img
+                              src={conditionStickerPath}
+                              alt="Condition"
+                              className="absolute top-1 right-1 w-12 h-12 object-contain pointer-events-none"
+                              style={{ transform: 'rotate(-5deg)' }}
+                            />
+                          )}
+
+                          {/* Rarity badge - bottom left */}
+                          {rarityBadgePath && (
+                            <img
+                              src={rarityBadgePath}
+                              alt="Rarity"
+                              className="absolute bottom-1 left-1 w-8 h-8 object-contain pointer-events-none"
+                            />
+                          )}
+                        </div>
+
+                        {/* Hover gradient and controls */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="absolute top-2 left-2">
                             <GripVertical className="w-5 h-5 text-white drop-shadow-lg" />
@@ -202,6 +258,8 @@ export default function BinderViewScreen({
                             <Pencil className="w-4 h-4" />
                           </button>
                         </div>
+
+                        {/* Quantity badge */}
                         {card.quantity > 1 && (
                           <div className="absolute top-2 right-2 bg-binder-accent text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
                             ×{card.quantity}
@@ -244,6 +302,16 @@ export default function BinderViewScreen({
           </PageSwipeContainer>
         </BinderFrame>
       </div>
+
+      {/* PDF Export Dialog */}
+      <BinderPdfExportDialog
+        open={showExportDialog}
+        onOpenChange={setShowExportDialog}
+        binderName={binder.name}
+        pageNumber={currentPage + 1}
+        cards={currentCards}
+        pageBackground={binder.theme.pageBackground}
+      />
     </div>
   );
 }

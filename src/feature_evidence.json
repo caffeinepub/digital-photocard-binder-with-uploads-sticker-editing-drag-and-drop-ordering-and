@@ -2,9 +2,14 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-generate-3-separate-vintage-style-price-tag-sticker-images-as-transparent-background-pngs-each-isolated-with-no-shadows-or-background-layer-outside-the-sticker-shape-each-sticker-must-have-a-slight-paper-texture-and-a-small-peeled-corner-to-look-like-a-physical-sticker-text-requirements-per-sticker-sticker-1-mint-in-green-sticker-2-near-mint-in-blue-sticker-3-played-in-orange",
-      "featureTitle": "Generate 3 separate vintage-style \"Price Tag\" sticker images as transparent-background PNGs, each isolated with no shadows or background layer outside the sticker shape. Each sticker must have a slight paper texture and a small peeled corner to look like a physical sticker.\n\nText requirements per sticker:\n- Sticker 1: \"MINT\" in green\n- Sticker 2: \"NEAR MINT\" in blue\n- Sticker 3: \"PLAYED\" in orange",
-      "files": [],
+      "featureId": "feature-add-a-binder-pdf-export-flow-that-generates-a-goodnotes-friendly-pdf-of-the-currently-viewed-binder-page-the-12-card-grid-with-the-same-visual-overlays-edited-image-if-present-rarity-badge-condition-sticker-and-legendary-glint-and-without-app-ui-chrome-no-buttons-headers-suitable-for-import-into-goodnotes",
+      "featureTitle": "Add a binder PDF export flow that generates a GoodNotes-friendly PDF of the currently viewed binder page (the 12-card grid) with the same visual overlays (edited image if present, rarity badge, condition sticker, and legendary glint) and without app UI chrome (no buttons/headers), suitable for import into GoodNotes.",
+      "files": [
+        "frontend/src/components/binder/BinderPageExportCanvas.tsx",
+        "frontend/src/features/export/binderPagePdf.ts",
+        "frontend/src/features/export/resolveExportImages.ts",
+        "frontend/src/screens/BinderViewScreen.tsx"
+      ],
       "components": [
         "authorization@4.0.0",
         "blob-storage@4.0.0",
@@ -20,9 +25,13 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-the-generated-sticker-pngs-to-the-frontend-static-assets-under-frontend-public-assets-generated-and-ensure-they-can-be-loaded-directly-by-the-browser-via-assets-generated-filename",
-      "featureTitle": "Add the generated sticker PNGs to the frontend static assets under frontend/public/assets/generated and ensure they can be loaded directly by the browser via /assets/generated/<filename>.",
-      "files": [],
+      "featureId": "feature-provide-export-settings-optimized-for-goodnotes-including-selectable-page-size-at-minimum-a4-portrait-and-us-letter-portrait-and-a-high-quality-output-mode-appropriate-for-handwriting-annotation-crisp-text-lines-and-non-blurry-images-when-zooming-in-within-goodnotes",
+      "featureTitle": "Provide export settings optimized for GoodNotes, including selectable page size (at minimum A4 Portrait and US Letter Portrait) and a high-quality output mode appropriate for handwriting/annotation (crisp text/lines and non-blurry images when zooming in within GoodNotes).",
+      "files": [
+        "frontend/src/components/binder/BinderPdfExportDialog.tsx",
+        "frontend/src/features/export/binderPagePdf.ts",
+        "frontend/src/screens/BinderViewScreen.tsx"
+      ],
       "components": [
         "authorization@4.0.0",
         "blob-storage@4.0.0",
@@ -34,6 +43,28 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-share-option-for-the-generated-pdf-that-uses-the-browser-s-native-share-mechanism-when-available-and-falls-back-to-downloading-the-pdf-when-sharing-is-not-supported-so-the-pdf-can-be-sent-directly-to-goodnotes-or-saved-to-files-for-later-import",
+      "featureTitle": "Add a \"Share\" option for the generated PDF that uses the browser’s native share mechanism when available (and falls back to downloading the PDF when sharing is not supported), so the PDF can be sent directly to GoodNotes (or saved to Files for later import).",
+      "files": [
+        "frontend/src/components/binder/BinderPdfExportDialog.tsx",
+        "frontend/src/features/export/shareOrDownloadPdf.ts",
+        "frontend/src/screens/BinderViewScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

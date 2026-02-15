@@ -41,6 +41,23 @@ actor {
     backgroundPattern : ?Text;
   };
 
+  public type CardRarity = {
+    #common;
+    #rare;
+    #legendary;
+    #ultraRare;
+    #none;
+  };
+
+  public type CardCondition = {
+    #mint;
+    #nearMint;
+    #good;
+    #fair;
+    #played;
+    #none;
+  };
+
   public type Photocard = {
     id : Text;
     name : Text;
@@ -48,6 +65,8 @@ actor {
     created : Time.Time;
     position : CardPosition;
     quantity : Nat;
+    rarity : CardRarity;
+    condition : CardCondition;
   };
 
   public type Binder = {
@@ -226,27 +245,102 @@ actor {
     image : Storage.ExternalBlob,
     position : CardPosition,
     quantity : Nat,
+    rarity : CardRarity,
+    condition : CardCondition,
   ) : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add photocards");
     };
-    let userData = getOrCreateUser(caller);
-    let binder = userData.binders.get(binderId);
-    switch (binder) {
-      case (null) { Runtime.trap("Binder not found") };
-      case (?b) {
-        let cardId = Time.now().toText();
-        let newCard = {
-          id = cardId;
-          name;
-          image;
-          created = Time.now();
-          position;
-          quantity;
+    let userData = users.get(caller);
+    switch (userData) {
+      case (null) { Runtime.trap("Unauthorized: Binder not found") };
+      case (?data) {
+        let binder = data.binders.get(binderId);
+        switch (binder) {
+          case (null) { Runtime.trap("Unauthorized: Binder not found") };
+          case (?b) {
+            let cardId = Time.now().toText();
+            let newCard = {
+              id = cardId;
+              name;
+              image;
+              created = Time.now();
+              position;
+              quantity;
+              rarity;
+              condition;
+            };
+            Binder.addCard(b, newCard);
+            data.binders.add(binderId, b);
+            cardId;
+          };
         };
-        Binder.addCard(b, newCard);
-        userData.binders.add(binderId, b);
-        cardId;
+      };
+    };
+  };
+
+  public shared ({ caller }) func updatePhotocard(
+    binderId : Text,
+    cardId : Text,
+    name : Text,
+    image : Storage.ExternalBlob,
+    position : CardPosition,
+    quantity : Nat,
+    rarity : CardRarity,
+    condition : CardCondition,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update photocards");
+    };
+    let userData = users.get(caller);
+    switch (userData) {
+      case (null) { Runtime.trap("Unauthorized: Binder not found") };
+      case (?data) {
+        let binder = data.binders.get(binderId);
+        switch (binder) {
+          case (null) { Runtime.trap("Unauthorized: Binder not found") };
+          case (?b) {
+            let cardsArray = b.cards.toArray();
+            let existingCard = cardsArray.find(func(c) { c.id == cardId });
+            switch (existingCard) {
+              case (null) { Runtime.trap("Card not found") };
+              case (?card) {
+                let updatedCard = {
+                  id = cardId;
+                  name;
+                  image;
+                  created = card.created;
+                  position;
+                  quantity;
+                  rarity;
+                  condition;
+                };
+                Binder.updateCard(b, updatedCard);
+                data.binders.add(binderId, b);
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func deletePhotocard(binderId : Text, cardId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete photocards");
+    };
+    let userData = users.get(caller);
+    switch (userData) {
+      case (null) { Runtime.trap("Unauthorized: Binder not found") };
+      case (?data) {
+        let binder = data.binders.get(binderId);
+        switch (binder) {
+          case (null) { Runtime.trap("Unauthorized: Binder not found") };
+          case (?b) {
+            Binder.removeCard(b, cardId);
+            data.binders.add(binderId, b);
+          };
+        };
       };
     };
   };
@@ -257,10 +351,10 @@ actor {
     };
     let userData = users.get(caller);
     switch (userData) {
-      case (null) { Runtime.trap("User not found") };
+      case (null) { Runtime.trap("Unauthorized: Binder not found") };
       case (?data) {
         if (not data.binders.containsKey(binderId)) {
-          Runtime.trap("Binder not found");
+          Runtime.trap("Unauthorized: Binder not found");
         };
         data.binders.remove(binderId);
       };
@@ -273,11 +367,11 @@ actor {
     };
     let userData = users.get(caller);
     switch (userData) {
-      case (null) { Runtime.trap("User not found") };
+      case (null) { Runtime.trap("Unauthorized: Binder not found") };
       case (?data) {
         let binder = data.binders.get(binderId);
         switch (binder) {
-          case (null) { Runtime.trap("Binder not found") };
+          case (null) { Runtime.trap("Unauthorized: Binder not found") };
           case (?b) {
             let updatedBinder = { b with theme = newTheme };
             data.binders.add(binderId, updatedBinder);
@@ -293,11 +387,11 @@ actor {
     };
     let userData = users.get(caller);
     switch (userData) {
-      case (null) { Runtime.trap("User not found") };
+      case (null) { Runtime.trap("Unauthorized: Binder not found") };
       case (?data) {
         let binder = data.binders.get(binderId);
         switch (binder) {
-          case (null) { Runtime.trap("Binder not found") };
+          case (null) { Runtime.trap("Unauthorized: Binder not found") };
           case (?b) {
             let cardsArray = b.cards.toArray();
             let reorderedCards = newOrder.map(
@@ -329,4 +423,3 @@ actor {
     };
   };
 };
-

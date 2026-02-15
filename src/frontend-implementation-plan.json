@@ -1,47 +1,89 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Vintage price tag sticker PNG assets (transparent)",
+  "title": "GoodNotes-ready binder page PDF export + share",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Generate three vintage-style price-tag sticker PNGs (transparent background) with specified labels and colors.",
+      "summary": "Export the currently viewed binder page as a GoodNotes-friendly PDF that matches the 12-card grid (including overlays and edited images) without app UI chrome.",
       "acceptanceCriteria": [
-        "Three PNG files are produced, one per sticker label (MINT / NEAR MINT / PLAYED).",
-        "Each PNG has a transparent background with only the sticker artwork present (no rectangular background fill).",
-        "Each sticker has visible subtle paper texture and a small peeled-corner detail.",
-        "Sticker text matches exactly and uses the specified text color (green/blue/orange), while maintaining a cohesive vintage price-tag style across all three."
+        "From the binder view screen, the user can export the current page as a PDF file.",
+        "The exported PDF page contains the 12-card layout exactly as shown (including overlays and any locally edited card images from the edited image cache).",
+        "The exported PDF does not include navigation/buttons/controls (no app header/footer/back/add/settings UI).",
+        "The exported PDF renders reliably (no missing images; overlays are present; no transparent/black boxes)."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/price-tag-mint.dim_512x512.png",
+          "path": "frontend/src/components/binder/BinderPageExportCanvas.tsx",
           "operation": "create",
-          "description": "Add generated transparent PNG asset for vintage price tag sticker with subtle paper texture and a small peeled corner; text reads exactly \"MINT\" in green; no shadows/background outside sticker shape."
+          "description": "Create a dedicated, chrome-free render component for a single binder page export (fixed 12-card grid) that matches BinderViewScreen visuals (edited image if present, rarity badge, condition sticker, legendary glint) but excludes hover controls/drag handles/buttons. Ensure it can accept pre-resolved image sources (data URLs) for reliable capture."
         },
         {
-          "path": "frontend/public/assets/generated/price-tag-near-mint.dim_512x512.png",
+          "path": "frontend/src/features/export/resolveExportImages.ts",
           "operation": "create",
-          "description": "Add generated transparent PNG asset for vintage price tag sticker with subtle paper texture and a small peeled corner; text reads exactly \"NEAR MINT\" in blue; no shadows/background outside sticker shape."
+          "description": "Add utilities to resolve all images needed for export into capture-safe sources (prefer edited image cache data URL; otherwise convert ExternalBlob bytes to data URL). Also include helpers to preload overlay asset images so capture does not produce missing/black boxes."
         },
         {
-          "path": "frontend/public/assets/generated/price-tag-played.dim_512x512.png",
+          "path": "frontend/src/features/export/binderPagePdf.ts",
           "operation": "create",
-          "description": "Add generated transparent PNG asset for vintage price tag sticker with subtle paper texture and a small peeled corner; text reads exactly \"PLAYED\" in orange; no shadows/background outside sticker shape."
+          "description": "Implement client-side binder page PDF generation that renders BinderPageExportCanvas into an offscreen container and rasterizes it into a PDF page while preserving the 12-card layout and overlays. Keep the exported content free of app layout chrome."
+        },
+        {
+          "path": "frontend/src/screens/BinderViewScreen.tsx",
+          "operation": "modify",
+          "description": "Add an Export/Share PDF entry point on the binder view screen and wire it to generate a PDF of the currently viewed page using BinderPageExportCanvas + binderPagePdf utilities. Ensure the export uses the same per-card overlay logic as the binder grid and respects locally edited images from editedImageCache."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Place the generated sticker PNGs under frontend/public/assets/generated so they are directly accessible via /assets/generated/<filename>.",
+      "summary": "Provide GoodNotes-optimized export settings including selectable page size (A4/Letter portrait) and a high-quality mode for crisp zooming/annotation.",
       "acceptanceCriteria": [
-        "The three generated PNGs exist under frontend/public/assets/generated.",
-        "Requesting each asset at /assets/generated/<filename> returns the image successfully in the deployed app."
+        "The user can choose between A4 Portrait and US Letter Portrait before exporting.",
+        "Exported PDFs are high-resolution enough to remain clear when zoomed in within GoodNotes (no obviously pixelated layout at typical GoodNotes zoom levels).",
+        "The exported layout preserves card aspect ratios and spacing and is centered on the page with consistent margins."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/README.generated-assets.txt",
+          "path": "frontend/src/components/binder/BinderPdfExportDialog.tsx",
           "operation": "create",
-          "description": "Document the expected direct browser paths for the generated assets to validate static serving: /assets/generated/price-tag-mint.dim_512x512.png, /assets/generated/price-tag-near-mint.dim_512x512.png, /assets/generated/price-tag-played.dim_512x512.png."
+          "description": "Create an export settings dialog for binder page PDF export (page size: A4 Portrait / US Letter Portrait; quality: standard/high). Use existing shadcn-ui components (e.g., Dialog/Select/Switch/Button) to present settings and actions; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/export/binderPagePdf.ts",
+          "operation": "modify",
+          "description": "Extend PDF generation to support selectable page size and high-quality rendering: map A4/Letter portrait dimensions, render export content into a centered page with consistent margins, and apply a higher render scale in high-quality mode to keep text/lines/images crisp when zooming in within GoodNotes."
+        },
+        {
+          "path": "frontend/src/screens/BinderViewScreen.tsx",
+          "operation": "modify",
+          "description": "Wire BinderPdfExportDialog into the binder view export flow, passing current binder name, current page index, and current page cards; ensure the dialog choices (A4/Letter, quality) control the generated PDF output."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Allow sharing the generated PDF via native browser share when available, with a deterministic filename and a download fallback.",
+      "acceptanceCriteria": [
+        "If the browser supports file sharing, the user can trigger a native share sheet with the generated PDF attached.",
+        "If native sharing is unavailable, the user can still download the generated PDF file.",
+        "The PDF filename is deterministic and user-friendly (includes binder name and page number)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/export/shareOrDownloadPdf.ts",
+          "operation": "create",
+          "description": "Add a helper to share a generated PDF Blob via navigator.share (when file sharing is supported) and otherwise trigger a download fallback. Enforce deterministic, user-friendly filenames that include binder name and 1-based page number."
+        },
+        {
+          "path": "frontend/src/components/binder/BinderPdfExportDialog.tsx",
+          "operation": "modify",
+          "description": "Add actions to generate the PDF and then invoke shareOrDownloadPdf, choosing native share when supported and download otherwise. Surface any errors in a user-visible way while keeping the filename deterministic."
+        },
+        {
+          "path": "frontend/src/screens/BinderViewScreen.tsx",
+          "operation": "modify",
+          "description": "Update binder view export wiring so the primary user action results in either a native share sheet (when supported) or a download, using the deterministic binder-name + page-number filename convention."
         }
       ]
     }

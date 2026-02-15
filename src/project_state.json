@@ -1,31 +1,45 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "App draft with card visuals; now adding PDF export/sharing optimized for import into GoodNotes.",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Vintage price tag sticker with paper texture and small peeled corner, text \"MINT\" (price-tag-mint.dim_512x512.png)\n- Vintage price tag sticker with paper texture and small peeled corner, text \"NEAR MINT\" (price-tag-near-mint.dim_512x512.png)\n- Vintage price tag sticker with paper texture and small peeled corner, text \"PLAYED\" (price-tag-played.dim_512x512.png)",
   "existing_features": [
     {
-      "id": "feature-generate-3-separate-vintage-style-price-tag-sticker-images-as-transparent-background-pngs-each-isolated-with-no-shadows-or-background-layer-outside-the-sticker-shape-each-sticker-must-have-a-slight-paper-texture-and-a-small-peeled-corner-to-look-like-a-physical-sticker-text-requirements-per-sticker-sticker-1-mint-in-green-sticker-2-near-mint-in-blue-sticker-3-played-in-orange",
-      "title": "Generate 3 separate vintage-style \"Price Tag\" sticker images as transparent-background PNGs, each isolated with no shadows or background layer outside the sticker shape. Each sticker must have a slight paper texture and a small peeled corner to look like a physical sticker.\n\nText requirements per sticker:\n- Sticker 1: \"MINT\" in green\n- Sticker 2: \"NEAR MINT\" in blue\n- Sticker 3: \"PLAYED\" in orange",
+      "id": "feature-add-a-binder-pdf-export-flow-that-generates-a-goodnotes-friendly-pdf-of-the-currently-viewed-binder-page-the-12-card-grid-with-the-same-visual-overlays-edited-image-if-present-rarity-badge-condition-sticker-and-legendary-glint-and-without-app-ui-chrome-no-buttons-headers-suitable-for-import-into-goodnotes",
+      "title": "Add a binder PDF export flow that generates a GoodNotes-friendly PDF of the currently viewed binder page (the 12-card grid) with the same visual overlays (edited image if present, rarity badge, condition sticker, and legendary glint) and without app UI chrome (no buttons/headers), suitable for import into GoodNotes.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-the-generated-sticker-pngs-to-the-frontend-static-assets-under-frontend-public-assets-generated-and-ensure-they-can-be-loaded-directly-by-the-browser-via-assets-generated-filename",
-      "title": "Add the generated sticker PNGs to the frontend static assets under frontend/public/assets/generated and ensure they can be loaded directly by the browser via /assets/generated/<filename>.",
+      "id": "feature-provide-export-settings-optimized-for-goodnotes-including-selectable-page-size-at-minimum-a4-portrait-and-us-letter-portrait-and-a-high-quality-output-mode-appropriate-for-handwriting-annotation-crisp-text-lines-and-non-blurry-images-when-zooming-in-within-goodnotes",
+      "title": "Provide export settings optimized for GoodNotes, including selectable page size (at minimum A4 Portrait and US Letter Portrait) and a high-quality output mode appropriate for handwriting/annotation (crisp text/lines and non-blurry images when zooming in within GoodNotes).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-share-option-for-the-generated-pdf-that-uses-the-browser-s-native-share-mechanism-when-available-and-falls-back-to-downloading-the-pdf-when-sharing-is-not-supported-so-the-pdf-can-be-sent-directly-to-goodnotes-or-saved-to-files-for-later-import",
+      "title": "Add a \"Share\" option for the generated PDF that uses the browser’s native share mechanism when available (and falls back to downloading the PDF when sharing is not supported), so the PDF can be sent directly to GoodNotes (or saved to Files for later import).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Generate vintage-style price tag sticker PNG assets",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Optimize sharing/export to PDF suitable for importing into GoodNotes",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Add GoodNotes-ready PDF export and sharing for binder pages",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,11 +1,11 @@
 {
   "frontend/src/App.tsx": "Main application component with authentication flow, profile setup, loading diagnostics, error handling with retry functionality, and screen navigation.",
-  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations with timeout wrappers, retry configuration, and enhanced error handling for profile, subscription, binders, and card management.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations with timeout wrappers, retry configuration, enhanced error handling for profile, subscription, binders, and card management, including default rarity and condition values for new cards.",
   "frontend/src/features/auth/LoginPanel.tsx": "Soft beige-themed sign-in screen with Internet Identity integration, accent color initialization, and binder accent utility classes for consistent theming.",
   "frontend/src/features/auth/ProfileSetupModal.tsx": "Modal dialog for first-time user profile setup prompting for display name.",
   "frontend/src/components/layout/AppLayout.tsx": "Light beige-themed layout wrapper with header navigation, accent color selector, user info display, logout functionality, footer with attribution, and build identifier display.",
   "frontend/src/screens/BinderLibraryScreen.tsx": "Binder collection overview screen with subscription-aware limits, error handling with retry, loading diagnostics, and user-friendly error messages with upgrade links.",
-  "frontend/src/screens/BinderViewScreen.tsx": "Individual binder view with paginated card grid, swipe navigation, light beige binder frame styling, drag-and-drop reordering, and soft theme with proper PageSwipeContainer integration.",
+  "frontend/src/screens/BinderViewScreen.tsx": "Individual binder view with paginated card grid, swipe navigation, drag-and-drop reordering, card thumbnail overlays, and PDF export functionality.",
   "frontend/src/screens/AddCardScreen.tsx": "Card upload screen with image file selection, validation, preview, progress tracking, ExternalBlob integration, and binder accent utility classes for primary actions and focus states.",
   "frontend/src/screens/EditCardScreen.tsx": "Canvas-based photocard editor with sticker placement, manipulation (move/scale/rotate/delete), rarity icon display section showing all five card rarities with gold-and-silver flat-design icons, save functionality using FileReader to convert Blob to data URL for localStorage, and dynamic accent color application for selection borders.",
   "frontend/src/screens/BinderSettingsScreen.tsx": "Light beige-themed binder customization interface with color pickers, texture selectors including new light assets, frame style options, and live preview.",
@@ -28,5 +28,12 @@
   "frontend/src/utils/promiseTimeout.ts": "Promise timeout utility that wraps promises with a configurable timeout to prevent indefinite hanging.",
   "frontend/src/hooks/useLoadingDiagnostics.ts": "Custom hook that logs diagnostic information when loading persists beyond a threshold, identifying which step is blocking without exposing sensitive data, with proper nullable timeout reference handling for React 19.",
   "frontend/src/components/system/GlobalLoadingGate.tsx": "Global loading and error gate component that displays loading spinner, error state with retry button, or renders children based on state.",
-  "frontend/public/assets/generated/README.generated-assets.txt": "Documentation file listing the three generated vintage price tag sticker PNG assets with their browser paths and usage examples."
+  "frontend/public/assets/generated/README.generated-assets.txt": "Documentation file listing the three generated vintage price tag sticker PNG assets with their browser paths and usage examples.",
+  "frontend/src/features/cards/overlayAssets.ts": "Utility module that maps card condition and rarity enum values to their corresponding overlay asset paths, with safe defaults for unknown values and helper functions for legendary glint overlays.",
+  "frontend/src/features/export/resolveExportImages.ts": "Utilities to resolve card images (edited cache or original blob) into data URLs and preload overlay assets for reliable PDF capture.",
+  "frontend/src/components/binder/BinderPageExportCanvas.tsx": "Chrome-free render component displaying a 12-card grid with overlays (condition, rarity, glint) for PDF export without UI controls.",
+  "frontend/src/features/export/binderPagePdf.ts": "Client-side PDF generation using browser's native print API with configurable page size, building a print-optimized HTML page with the 12-card grid layout and overlays.",
+  "frontend/src/features/export/shareOrDownloadPdf.ts": "Helper module providing filename generation for PDF exports using the browser's print-to-PDF functionality.",
+  "frontend/src/components/binder/BinderPdfExportDialog.tsx": "Export settings dialog for binder page PDF with page size (A4/Letter) and quality options, using browser's native print dialog for PDF generation.",
+  "frontend/package.json": "Package configuration with dependencies including html2canvas and jspdf for client-side PDF generation."
 }
