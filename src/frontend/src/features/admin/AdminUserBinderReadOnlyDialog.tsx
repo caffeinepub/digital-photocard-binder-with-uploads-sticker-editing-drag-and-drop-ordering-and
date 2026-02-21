@@ -2,22 +2,23 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, BookOpen, Image as ImageIcon } from 'lucide-react';
+import { Loader2, AlertCircle, BookOpen } from 'lucide-react';
 import { useGetBindersByUser } from '../../hooks/useQueries';
-import type { UserAnalytics, BinderView } from '../../backend';
+import type { BinderView } from '../../backend';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Principal } from '@dfinity/principal';
 
 interface AdminUserBinderReadOnlyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: UserAnalytics;
+  userPrincipal: Principal;
 }
 
 export default function AdminUserBinderReadOnlyDialog({
   open,
   onOpenChange,
-  user,
+  userPrincipal,
 }: AdminUserBinderReadOnlyDialogProps) {
   const getBindersMutation = useGetBindersByUser();
   const [binders, setBinders] = useState<BinderView[]>([]);
@@ -32,7 +33,7 @@ export default function AdminUserBinderReadOnlyDialog({
   const loadBinders = async () => {
     setError(null);
     try {
-      const userBinders = await getBindersMutation.mutateAsync(user.principal);
+      const userBinders = await getBindersMutation.mutateAsync(userPrincipal);
       setBinders(userBinders);
     } catch (err: any) {
       setError(err.message || 'Failed to load user binders');
@@ -50,16 +51,16 @@ export default function AdminUserBinderReadOnlyDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="w-5 h-5" />
-            {user.email || 'User'}'s Binder Collection (Read-Only)
+            User Binder Collection (Read-Only)
           </DialogTitle>
           <DialogDescription>
-            Viewing binders for {user.email || user.principal.toString().slice(0, 20) + '...'}
+            Viewing binders for {userPrincipal.toString().slice(0, 20)}...
           </DialogDescription>
         </DialogHeader>
 
         {getBindersMutation.isPending && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-binder-accent" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         )}
 
@@ -78,7 +79,7 @@ export default function AdminUserBinderReadOnlyDialog({
         {!getBindersMutation.isPending && !error && (
           <ScrollArea className="max-h-[60vh]">
             {binders.length === 0 ? (
-              <div className="text-center py-8 text-binder-text-muted">
+              <div className="text-center py-8 text-muted-foreground">
                 This user has no binders yet.
               </div>
             ) : (
@@ -87,13 +88,13 @@ export default function AdminUserBinderReadOnlyDialog({
                   <Card key={binder.id}>
                     <CardHeader>
                       <CardTitle className="text-lg">{binder.name}</CardTitle>
-                      <p className="text-sm text-binder-text-muted">
+                      <p className="text-sm text-muted-foreground">
                         {binder.cards.length} card{binder.cards.length !== 1 ? 's' : ''}
                       </p>
                     </CardHeader>
                     <CardContent>
                       {binder.cards.length === 0 ? (
-                        <div className="text-center py-4 text-binder-text-muted">
+                        <div className="text-center py-4 text-muted-foreground">
                           No cards in this binder
                         </div>
                       ) : (
@@ -101,7 +102,7 @@ export default function AdminUserBinderReadOnlyDialog({
                           {binder.cards.map((card) => (
                             <div
                               key={card.id}
-                              className="relative aspect-[2.5/3.5] rounded-lg overflow-hidden border border-binder-border bg-binder-page shadow-sm"
+                              className="relative aspect-[2.5/3.5] rounded-lg overflow-hidden border border-border bg-card shadow-sm"
                             >
                               <img
                                 src={card.image.getDirectURL()}

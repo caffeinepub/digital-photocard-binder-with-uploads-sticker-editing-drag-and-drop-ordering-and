@@ -228,6 +228,7 @@ export interface backendInterface {
     addLayoutPreset(layout: string): Promise<void>;
     addPhotocard(binderId: string, name: string, image: ExternalBlob, position: CardPosition, quantity: bigint, rarity: CardRarity, condition: CardCondition): Promise<string>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    authenticateMasterAdminKey(adminKey: string): Promise<boolean>;
     createBinder(name: string, theme: BinderTheme): Promise<string>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
     deleteBinder(binderId: string): Promise<void>;
@@ -403,6 +404,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n13(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async authenticateMasterAdminKey(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.authenticateMasterAdminKey(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.authenticateMasterAdminKey(arg0);
             return result;
         }
     }

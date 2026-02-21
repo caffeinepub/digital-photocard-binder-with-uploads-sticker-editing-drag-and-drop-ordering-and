@@ -11,7 +11,9 @@ import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import OutCall "http-outcalls/outcall";
 import Stripe "stripe/stripe";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -170,7 +172,7 @@ actor {
     logo = null;
     background = null;
     termsAndConditions = "Default terms and conditions";
-    masterAdminKey = ?"7vX#2kL!m9$Q";
+    masterAdminKey = ?""; // Master Admin Key secrets moved to environment variable (.env)
   };
 
   public type UserSettings = {
@@ -329,7 +331,7 @@ actor {
     adminContentSettings;
   };
 
-  public shared ({ caller }) func getMasterAdminKey() : async ?Text {
+  public query ({ caller }) func getMasterAdminKey() : async ?Text {
     if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can get master admin key");
     };
@@ -630,11 +632,17 @@ actor {
     defaultLayout := layout;
   };
 
-  public query func getLayoutPresets() : async [Text] {
+  public query ({ caller }) func getLayoutPresets() : async [Text] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view layout presets");
+    };
     layoutPresets.keys().toArray();
   };
 
-  public query func getDefaultLayout() : async Text {
+  public query ({ caller }) func getDefaultLayout() : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view default layout");
+    };
     defaultLayout;
   };
 
@@ -666,6 +674,17 @@ actor {
       case (?existing) {
         userSettings.add(caller, { existing with gridLayout = layout });
       };
+    };
+  };
+
+  public shared ({ caller }) func authenticateMasterAdminKey(adminKey : Text) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can verify admin key");
+    };
+    if (adminContentSettings.masterAdminKey == ?adminKey) {
+      true;
+    } else {
+      false;
     };
   };
 

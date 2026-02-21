@@ -1,10 +1,191 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { BinderView, BinderTheme, UserProfile, CardPosition, SubscriptionStatus, AdminContentSettings, UserAnalytics } from '../backend';
-import { ExternalBlob, CardRarity, CardCondition } from '../backend';
-import { withTimeout } from '../utils/promiseTimeout';
+import type {
+  BinderView,
+  BinderTheme,
+  CardPosition,
+  CardRarity,
+  CardCondition,
+  UserProfile,
+  SubscriptionStatus,
+  AdminContentSettings,
+  UserAnalytics,
+} from '../backend';
+import { ExternalBlob } from '../backend';
 import { Principal } from '@dfinity/principal';
-import { useInternetIdentity } from './useInternetIdentity';
+import { withTimeout } from '../utils/promiseTimeout';
+
+const QUERY_TIMEOUT = 30000;
+
+export function useGetBinders() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<BinderView[]>({
+    queryKey: ['binders'],
+    queryFn: async () => {
+      if (!actor) return [];
+      console.log('[useGetBinders] Fetching binders...');
+      const result = await withTimeout(actor.getBinders(), QUERY_TIMEOUT, 'getBinders');
+      console.log('[useGetBinders] Fetched binders:', result.length);
+      return result;
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useCreateBinder() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ name, theme }: { name: string; theme: BinderTheme }) => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useCreateBinder] Creating binder:', name);
+      return withTimeout(actor.createBinder(name, theme), QUERY_TIMEOUT, 'createBinder');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
+
+export function useDeleteBinder() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (binderId: string) => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useDeleteBinder] Deleting binder:', binderId);
+      return withTimeout(actor.deleteBinder(binderId), QUERY_TIMEOUT, 'deleteBinder');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
+
+export function useAddPhotocard() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      binderId,
+      name,
+      image,
+      position,
+      quantity,
+      rarity,
+      condition,
+    }: {
+      binderId: string;
+      name: string;
+      image: ExternalBlob;
+      position: CardPosition;
+      quantity: bigint;
+      rarity: CardRarity;
+      condition: CardCondition;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useAddPhotocard] Adding photocard to binder:', binderId);
+      return withTimeout(
+        actor.addPhotocard(binderId, name, image, position, quantity, rarity, condition),
+        QUERY_TIMEOUT,
+        'addPhotocard'
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
+
+export function useUpdatePhotocard() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      binderId,
+      cardId,
+      name,
+      image,
+      position,
+      quantity,
+      rarity,
+      condition,
+    }: {
+      binderId: string;
+      cardId: string;
+      name: string;
+      image: ExternalBlob;
+      position: CardPosition;
+      quantity: bigint;
+      rarity: CardRarity;
+      condition: CardCondition;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useUpdatePhotocard] Updating photocard:', cardId);
+      return withTimeout(
+        actor.updatePhotocard(binderId, cardId, name, image, position, quantity, rarity, condition),
+        QUERY_TIMEOUT,
+        'updatePhotocard'
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
+
+export function useDeletePhotocard() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ binderId, cardId }: { binderId: string; cardId: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useDeletePhotocard] Deleting photocard:', cardId);
+      return withTimeout(actor.deletePhotocard(binderId, cardId), QUERY_TIMEOUT, 'deletePhotocard');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
+
+export function useUpdateBinderTheme() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ binderId, theme }: { binderId: string; theme: BinderTheme }) => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useUpdateBinderTheme] Updating binder theme:', binderId);
+      return withTimeout(actor.updateBinderTheme(binderId, theme), QUERY_TIMEOUT, 'updateBinderTheme');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
+
+export function useReorderCards() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ binderId, newOrder }: { binderId: string; newOrder: string[] }) => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useReorderCards] Reordering cards in binder:', binderId);
+      return withTimeout(actor.reorderCards(binderId, newOrder), QUERY_TIMEOUT, 'reorderCards');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -13,18 +194,11 @@ export function useGetCallerUserProfile() {
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      console.log('[useQueries] Fetching caller user profile...');
-      const result = await withTimeout(
-        actor.getCallerUserProfile(),
-        30000,
-        'Profile fetch timed out - please check your connection'
-      );
-      console.log('[useQueries] Profile fetch result:', result ? 'Profile found' : 'No profile');
-      return result;
+      console.log('[useGetCallerUserProfile] Fetching user profile...');
+      return withTimeout(actor.getCallerUserProfile(), QUERY_TIMEOUT, 'getCallerUserProfile');
     },
     enabled: !!actor && !actorFetching,
-    retry: 1,
-    retryDelay: 1000,
+    retry: false,
   });
 
   return {
@@ -41,30 +215,12 @@ export function useSaveCallerUserProfile() {
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.saveCallerUserProfile(profile);
+      console.log('[useSaveCallerUserProfile] Saving user profile...');
+      return withTimeout(actor.saveCallerUserProfile(profile), QUERY_TIMEOUT, 'saveCallerUserProfile');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     },
-  });
-}
-
-export function useIsCallerAdmin() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<boolean>({
-    queryKey: ['isCallerAdmin'],
-    queryFn: async () => {
-      if (!actor) return false;
-      return withTimeout(
-        actor.isCallerAdmin(),
-        30000,
-        'Admin check timed out'
-      );
-    },
-    enabled: !!actor && !isFetching,
-    retry: 1,
-    retryDelay: 1000,
   });
 }
 
@@ -75,179 +231,13 @@ export function useGetSubscriptionStatus() {
     queryKey: ['subscriptionStatus'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return withTimeout(
-        actor.getSubscriptionStatus(),
-        30000,
-        'Subscription status fetch timed out'
-      );
+      console.log('[useGetSubscriptionStatus] Fetching subscription status...');
+      return withTimeout(actor.getSubscriptionStatus(), QUERY_TIMEOUT, 'getSubscriptionStatus');
     },
     enabled: !!actor && !isFetching,
-    retry: 1,
-    retryDelay: 1000,
   });
 }
 
-export function useGetBinders() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<BinderView[]>({
-    queryKey: ['binders'],
-    queryFn: async () => {
-      if (!actor) {
-        console.log('[useQueries] getBinders: Actor not available');
-        return [];
-      }
-      console.log('[useQueries] Fetching binders...');
-      try {
-        const binders = await withTimeout(
-          actor.getBinders(),
-          30000,
-          'Binders fetch timed out - please check your connection'
-        );
-        console.log('[useQueries] Binders fetched successfully:', {
-          count: binders.length,
-          binderIds: binders.map(b => b.id),
-          cardCounts: binders.map(b => ({ id: b.id, cards: b.cards.length }))
-        });
-        
-        // Log detailed info about first binder if available
-        if (binders.length > 0) {
-          const firstBinder = binders[0];
-          console.log('[useQueries] First binder details:', {
-            id: firstBinder.id,
-            name: firstBinder.name,
-            cardsCount: firstBinder.cards.length,
-            sampleCard: firstBinder.cards[0] ? {
-              id: firstBinder.cards[0].id,
-              name: firstBinder.cards[0].name,
-              hasImage: !!firstBinder.cards[0].image
-            } : 'No cards'
-          });
-        }
-        
-        return binders;
-      } catch (error) {
-        console.error('[useQueries] Binders fetch error:', error);
-        throw error;
-      }
-    },
-    enabled: !!actor && !isFetching,
-    retry: 1,
-    retryDelay: 1000,
-  });
-}
-
-export function useCreateBinder() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ name, theme }: { name: string; theme: BinderTheme }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.createBinder(name, theme);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['binders'] });
-    },
-    onError: (error) => {
-      // Log detailed error for debugging
-      console.error('Binder creation failed:', error);
-    },
-  });
-}
-
-export function useDeleteBinder() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (binderId: string) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteBinder(binderId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['binders'] });
-    },
-  });
-}
-
-export function useUpdateBinderTheme() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ binderId, theme }: { binderId: string; theme: BinderTheme }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateBinderTheme(binderId, theme);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['binders'] });
-    },
-  });
-}
-
-export function useAddPhotocard() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      binderId,
-      name,
-      imageBytes,
-      position,
-      quantity,
-      onProgress,
-    }: {
-      binderId: string;
-      name: string;
-      imageBytes: Uint8Array;
-      position: CardPosition;
-      quantity: bigint;
-      onProgress?: (percentage: number) => void;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      
-      // Cast to the expected type for ExternalBlob.fromBytes
-      const typedBytes = new Uint8Array(imageBytes.buffer) as Uint8Array<ArrayBuffer>;
-      let blob = ExternalBlob.fromBytes(typedBytes);
-      if (onProgress) {
-        blob = blob.withUploadProgress(onProgress);
-      }
-      
-      // Add default rarity and condition values for new cards
-      return actor.addPhotocard(
-        binderId,
-        name,
-        blob,
-        position,
-        quantity,
-        CardRarity.none,
-        CardCondition.none
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['binders'] });
-    },
-  });
-}
-
-export function useReorderCards() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ binderId, newOrder }: { binderId: string; newOrder: string[] }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.reorderCards(binderId, newOrder);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['binders'] });
-    },
-  });
-}
-
-// Admin: Content Settings
 export function useGetAdminContentSettings() {
   const { actor, isFetching } = useActor();
 
@@ -255,17 +245,10 @@ export function useGetAdminContentSettings() {
     queryKey: ['adminContentSettings'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return withTimeout(
-        actor.getAdminContentSettings(),
-        30000,
-        'Content settings fetch timed out'
-      );
+      console.log('[useGetAdminContentSettings] Fetching admin content settings...');
+      return withTimeout(actor.getAdminContentSettings(), QUERY_TIMEOUT, 'getAdminContentSettings');
     },
     enabled: !!actor && !isFetching,
-    retry: 1,
-    retryDelay: 1000,
-    refetchInterval: 60000, // Refetch every 60 seconds for automatic updates
-    staleTime: 30000,
   });
 }
 
@@ -276,7 +259,12 @@ export function useUpdateAdminContentSettings() {
   return useMutation({
     mutationFn: async (settings: AdminContentSettings) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateAdminContentSettings(settings);
+      console.log('[useUpdateAdminContentSettings] Updating admin content settings...');
+      return withTimeout(
+        actor.updateAdminContentSettings(settings),
+        QUERY_TIMEOUT,
+        'updateAdminContentSettings'
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminContentSettings'] });
@@ -284,36 +272,14 @@ export function useUpdateAdminContentSettings() {
   });
 }
 
-// Admin: Master Admin Key Management
 export function useVerifyMasterAdminKey() {
   const { actor } = useActor();
 
   return useMutation({
     mutationFn: async (key: string) => {
-      if (!actor) {
-        console.error('[useVerifyMasterAdminKey] Actor not available');
-        throw new Error('Actor not available');
-      }
-      
-      console.log('[useVerifyMasterAdminKey] Fetching stored master admin key...');
-      try {
-        const storedKey = await actor.getMasterAdminKey();
-        console.log('[useVerifyMasterAdminKey] Stored key retrieved:', storedKey ? 'Key exists (masked)' : 'No key stored');
-        console.log('[useVerifyMasterAdminKey] Input key length:', key.length);
-        
-        // Handle null case explicitly
-        if (storedKey === null) {
-          console.error('[useVerifyMasterAdminKey] No master admin key is stored in backend');
-          return false;
-        }
-        
-        const isValid = storedKey === key;
-        console.log('[useVerifyMasterAdminKey] Verification result:', isValid ? 'Valid' : 'Invalid');
-        return isValid;
-      } catch (error) {
-        console.error('[useVerifyMasterAdminKey] Error during verification:', error);
-        throw error;
-      }
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useVerifyMasterAdminKey] Verifying master admin key...');
+      return withTimeout(actor.authenticateMasterAdminKey(key), QUERY_TIMEOUT, 'authenticateMasterAdminKey');
     },
   });
 }
@@ -325,7 +291,8 @@ export function useUpdateMasterAdminKey() {
   return useMutation({
     mutationFn: async (newKey: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateMasterAdminKey(newKey);
+      console.log('[useUpdateMasterAdminKey] Updating master admin key...');
+      return withTimeout(actor.updateMasterAdminKey(newKey), QUERY_TIMEOUT, 'updateMasterAdminKey');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminContentSettings'] });
@@ -333,7 +300,6 @@ export function useUpdateMasterAdminKey() {
   });
 }
 
-// Admin: User Analytics
 export function useGetAllUsers() {
   const { actor, isFetching } = useActor();
 
@@ -341,16 +307,10 @@ export function useGetAllUsers() {
     queryKey: ['allUsers'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return withTimeout(
-        actor.getAllUsers(),
-        30000,
-        'User analytics fetch timed out'
-      );
+      console.log('[useGetAllUsers] Fetching all users...');
+      return withTimeout(actor.getAllUsers(), QUERY_TIMEOUT, 'getAllUsers');
     },
     enabled: !!actor && !isFetching,
-    retry: 1,
-    retryDelay: 1000,
-    refetchInterval: 30000, // Refetch every 30 seconds
   });
 }
 
@@ -360,11 +320,8 @@ export function useGetFilteredUsers() {
   return useMutation({
     mutationFn: async (filter: string) => {
       if (!actor) throw new Error('Actor not available');
-      return withTimeout(
-        actor.getFilteredUsers(filter),
-        30000,
-        'User search timed out'
-      );
+      console.log('[useGetFilteredUsers] Filtering users by:', filter);
+      return withTimeout(actor.getFilteredUsers(filter), QUERY_TIMEOUT, 'getFilteredUsers');
     },
   });
 }
@@ -375,44 +332,25 @@ export function useGetBindersByUser() {
   return useMutation({
     mutationFn: async (userPrincipal: Principal) => {
       if (!actor) throw new Error('Actor not available');
-      return withTimeout(
-        actor.getBindersByUser(userPrincipal),
-        30000,
-        'User binders fetch timed out'
-      );
+      console.log('[useGetBindersByUser] Fetching binders for user:', userPrincipal.toString());
+      return withTimeout(actor.getBindersByUser(userPrincipal), QUERY_TIMEOUT, 'getBindersByUser');
     },
   });
 }
 
-// Grid Layout Preferences
-export function useGetUserLayout() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
+export function useUpdateSubscriptionStatus() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
 
-  return useQuery<string>({
-    queryKey: ['userLayout'],
-    queryFn: async () => {
+  return useMutation({
+    mutationFn: async ({ user, status }: { user: Principal; status: SubscriptionStatus }) => {
       if (!actor) throw new Error('Actor not available');
-      if (!identity) throw new Error('Identity not available');
-      
-      console.log('[useQueries] Fetching user layout...');
-      try {
-        // Backend getUserLayout() uses caller's principal automatically
-        const layout = await withTimeout(
-          actor.getUserLayout(),
-          30000,
-          'Layout preference fetch timed out'
-        );
-        console.log('[useQueries] User layout fetched:', layout);
-        return layout;
-      } catch (error) {
-        console.error('[useQueries] User layout fetch error:', error);
-        throw error;
-      }
+      console.log('[useUpdateSubscriptionStatus] Updating subscription status for user:', user.toString());
+      return withTimeout(actor.updateSubscriptionStatus(user, status), QUERY_TIMEOUT, 'updateSubscriptionStatus');
     },
-    enabled: !!actor && !isFetching && !!identity,
-    retry: 1,
-    retryDelay: 1000,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+    },
   });
 }
 
@@ -423,62 +361,13 @@ export function useGetLayoutPresets() {
     queryKey: ['layoutPresets'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return withTimeout(
-        actor.getLayoutPresets(),
-        30000,
-        'Layout presets fetch timed out'
-      );
+      console.log('[useGetLayoutPresets] Fetching layout presets...');
+      return withTimeout(actor.getLayoutPresets(), QUERY_TIMEOUT, 'getLayoutPresets');
     },
     enabled: !!actor && !isFetching,
-    retry: 1,
-    retryDelay: 1000,
   });
 }
 
-export function useGetDefaultLayout() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<string>({
-    queryKey: ['defaultLayout'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      console.log('[useQueries] Fetching default layout...');
-      try {
-        const layout = await withTimeout(
-          actor.getDefaultLayout(),
-          30000,
-          'Default layout fetch timed out'
-        );
-        console.log('[useQueries] Default layout fetched:', layout);
-        return layout;
-      } catch (error) {
-        console.error('[useQueries] Default layout fetch error:', error);
-        throw error;
-      }
-    },
-    enabled: !!actor && !isFetching,
-    retry: 1,
-    retryDelay: 1000,
-  });
-}
-
-export function useUpdateUserLayout() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (layout: string) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateUserLayout(layout);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userLayout'] });
-      queryClient.invalidateQueries({ queryKey: ['binders'] });
-    },
-  });
-}
-
-// Admin: Layout Preset Management
 export function useAddLayoutPreset() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -486,7 +375,8 @@ export function useAddLayoutPreset() {
   return useMutation({
     mutationFn: async (layout: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addLayoutPreset(layout);
+      console.log('[useAddLayoutPreset] Adding layout preset:', layout);
+      return withTimeout(actor.addLayoutPreset(layout), QUERY_TIMEOUT, 'addLayoutPreset');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['layoutPresets'] });
@@ -501,11 +391,26 @@ export function useRemoveLayoutPreset() {
   return useMutation({
     mutationFn: async (layout: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.removeLayoutPreset(layout);
+      console.log('[useRemoveLayoutPreset] Removing layout preset:', layout);
+      return withTimeout(actor.removeLayoutPreset(layout), QUERY_TIMEOUT, 'removeLayoutPreset');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['layoutPresets'] });
     },
+  });
+}
+
+export function useGetDefaultLayout() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string>({
+    queryKey: ['defaultLayout'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useGetDefaultLayout] Fetching default layout...');
+      return withTimeout(actor.getDefaultLayout(), QUERY_TIMEOUT, 'getDefaultLayout');
+    },
+    enabled: !!actor && !isFetching,
   });
 }
 
@@ -516,7 +421,8 @@ export function useSetDefaultLayout() {
   return useMutation({
     mutationFn: async (layout: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.setDefaultLayout(layout);
+      console.log('[useSetDefaultLayout] Setting default layout:', layout);
+      return withTimeout(actor.setDefaultLayout(layout), QUERY_TIMEOUT, 'setDefaultLayout');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['defaultLayout'] });
@@ -524,56 +430,45 @@ export function useSetDefaultLayout() {
   });
 }
 
-// Stripe Payment Integration
+export function useGetUserLayout() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string>({
+    queryKey: ['userLayout'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useGetUserLayout] Fetching user layout preference...');
+      return withTimeout(actor.getUserLayout(), QUERY_TIMEOUT, 'getUserLayout');
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useUpdateUserLayout() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (layout: string) => {
+      if (!actor) throw new Error('Actor not available');
+      console.log('[useUpdateUserLayout] Updating user layout preference:', layout);
+      return withTimeout(actor.updateUserLayout(layout), QUERY_TIMEOUT, 'updateUserLayout');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userLayout'] });
+      queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
+
 export function useSaveStripeKeys() {
   const { actor } = useActor();
 
   return useMutation({
     mutationFn: async ({ publishableKey, secretKey }: { publishableKey: string; secretKey: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return withTimeout(
-        actor.saveStripeKeys(publishableKey, secretKey),
-        30000,
-        'Stripe keys save timed out'
-      );
+      console.log('[useSaveStripeKeys] Saving Stripe keys...');
+      return withTimeout(actor.saveStripeKeys(publishableKey, secretKey), QUERY_TIMEOUT, 'saveStripeKeys');
     },
-  });
-}
-
-export function useGetStripePublishableKey() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<string>({
-    queryKey: ['stripePublishableKey'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return withTimeout(
-        actor.getStripePublishableKey(),
-        30000,
-        'Stripe publishable key fetch timed out'
-      );
-    },
-    enabled: !!actor && !isFetching,
-    retry: 1,
-    retryDelay: 1000,
-  });
-}
-
-export function useIsStripeConfigured() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<boolean>({
-    queryKey: ['isStripeConfigured'],
-    queryFn: async () => {
-      if (!actor) return false;
-      return withTimeout(
-        actor.isStripeConfigured(),
-        30000,
-        'Stripe configuration check timed out'
-      );
-    },
-    enabled: !!actor && !isFetching,
-    retry: 1,
-    retryDelay: 1000,
   });
 }

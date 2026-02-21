@@ -1,21 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useGetBinders, useReorderCards, useGetUserLayout, useGetDefaultLayout } from '../hooks/useQueries';
-import { useBinderPagination } from '../hooks/useBinderPagination';
-import { getEditedImage } from '../features/cards/editedImageCache';
-import {
-  getConditionStickerPath,
-  getRarityBadgePath,
-  getGlintOverlayPath,
-  shouldShowGlint,
-} from '../features/cards/overlayAssets';
+import React, { useMemo } from 'react';
+import { useGetBinders, useGetUserLayout } from '../hooks/useQueries';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Settings, GripVertical, Pencil, ChevronLeft, ChevronRight, BookHeart, FileDown, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, Plus, Settings } from 'lucide-react';
 import BinderFrame from '../components/binder/BinderFrame';
-import BinderRingsOverlay from '../components/binder/BinderRingsOverlay';
+import { useBinderPagination } from '../hooks/useBinderPagination';
 import PageSwipeContainer from '../components/binder/PageSwipeContainer';
-import BinderPdfExportDialog from '../components/binder/BinderPdfExportDialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import type { Photocard } from '../backend';
 
 interface BinderViewScreenProps {
   binderId: string;
@@ -25,161 +14,70 @@ interface BinderViewScreenProps {
   onSettings: () => void;
 }
 
-export default function BinderViewScreen({
-  binderId,
-  onBack,
-  onAddCard,
-  onEditCard,
-  onSettings,
-}: BinderViewScreenProps) {
-  const { data: binders = [], isLoading: bindersLoading, error: bindersError, refetch: refetchBinders } = useGetBinders();
-  const { data: userLayout, isLoading: userLayoutLoading, error: userLayoutError } = useGetUserLayout();
-  const { data: defaultLayout, isLoading: defaultLayoutLoading, error: defaultLayoutError } = useGetDefaultLayout();
-  const { mutate: reorderCards } = useReorderCards();
-  
-  console.log('[BinderViewScreen] Render state:', {
-    binderId,
-    bindersCount: binders.length,
-    bindersLoading,
-    bindersError: bindersError?.message,
-    userLayout,
-    userLayoutLoading,
-    defaultLayout,
-    defaultLayoutLoading,
-  });
+export default function BinderViewScreen({ binderId, onBack, onAddCard, onEditCard, onSettings }: BinderViewScreenProps) {
+  const { data: binders, isLoading: bindersLoading, error: bindersError, refetch: refetchBinders } = useGetBinders();
+  const { data: userLayout, isLoading: layoutLoading, error: layoutError } = useGetUserLayout();
 
-  const binder = binders.find((b) => b.id === binderId);
-  
-  console.log('[BinderViewScreen] Selected binder:', {
-    found: !!binder,
-    binderId,
-    binderName: binder?.name,
-    cardsCount: binder?.cards.length,
-  });
+  const isLoading = bindersLoading || layoutLoading;
+  const error = bindersError || layoutError;
 
-  const [cards, setCards] = useState<Photocard[]>([]);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const [showExportDialog, setShowExportDialog] = useState(false);
+  const binder = useMemo(() => {
+    if (!binders) return null;
+    return binders.find((b) => b.id === binderId) || null;
+  }, [binders, binderId]);
 
-  // Parse grid layout (e.g., "3x3" -> { cols: 3, rows: 3 })
-  // Use userLayout if available, otherwise fall back to defaultLayout
-  const layout = userLayout || defaultLayout || '3x3';
-  const [colsStr, rowsStr] = layout.split('x');
-  const cols = parseInt(colsStr, 10) || 3;
-  const rows = parseInt(rowsStr, 10) || 3;
+  const { cols, rows } = useMemo(() => {
+    if (!userLayout) return { cols: 3, rows: 3 };
+    const [colsStr, rowsStr] = userLayout.split('x');
+    return {
+      cols: parseInt(colsStr, 10) || 3,
+      rows: parseInt(rowsStr, 10) || 3,
+    };
+  }, [userLayout]);
+
   const cardsPerPage = cols * rows;
 
-  console.log('[BinderViewScreen] Layout configuration:', {
-    layout,
+  const { currentPage, totalPages, currentCards, nextPage, prevPage, hasNext, hasPrev } =
+    useBinderPagination(binder?.cards || [], cardsPerPage);
+
+  console.log('[BinderViewScreen] Render state:', {
+    binderId,
+    binderFound: !!binder,
+    cardsCount: binder?.cards.length || 0,
+    currentPage,
+    totalPages,
+    currentCardsCount: currentCards.length,
+    userLayout,
     cols,
     rows,
     cardsPerPage,
   });
 
-  const {
-    currentPage,
-    totalPages,
-    currentCards,
-    nextPage,
-    prevPage,
-    hasNext,
-    hasPrev,
-  } = useBinderPagination(cards, cardsPerPage);
-
-  console.log('[BinderViewScreen] Pagination state:', {
-    totalCards: cards.length,
-    currentPage,
-    totalPages,
-    currentCardsCount: currentCards.length,
-    hasNext,
-    hasPrev,
-  });
-
-  useEffect(() => {
-    if (binder) {
-      console.log('[BinderViewScreen] Setting cards from binder:', {
-        binderId: binder.id,
-        cardsCount: binder.cards.length,
-      });
-      setCards(binder.cards);
-    } else {
-      console.log('[BinderViewScreen] No binder found, clearing cards');
-      setCards([]);
-    }
-  }, [binder]);
-
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    setDragOverIndex(index);
-  };
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === dropIndex) {
-      setDraggedIndex(null);
-      setDragOverIndex(null);
-      return;
-    }
-
-    const pageOffset = currentPage * cardsPerPage;
-    const globalDraggedIndex = pageOffset + draggedIndex;
-    const globalDropIndex = pageOffset + dropIndex;
-
-    const newCards = [...cards];
-    const [draggedCard] = newCards.splice(globalDraggedIndex, 1);
-    newCards.splice(globalDropIndex, 0, draggedCard);
-
-    setCards(newCards);
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-
-    reorderCards({
-      binderId,
-      newOrder: newCards.map((c) => c.id),
-    });
-  };
-
-  // Show loading state while data is being fetched
-  if (bindersLoading || userLayoutLoading || defaultLayoutLoading) {
-    console.log('[BinderViewScreen] Showing loading state');
+  if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-center py-24">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-binder-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-binder-text-muted">Loading binder...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Loading binder...</p>
         </div>
       </div>
     );
   }
 
-  // Show error state with retry option
-  if (bindersError || userLayoutError || defaultLayoutError) {
-    const errorMessage = bindersError?.message || userLayoutError?.message || defaultLayoutError?.message || 'Unknown error';
-    console.error('[BinderViewScreen] Error state:', errorMessage);
+  if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="py-16">
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-5 w-5" />
-            <AlertDescription>
-              <strong className="block mb-2">Failed to load binder</strong>
-              <p className="text-sm mb-4">{errorMessage}</p>
-            </AlertDescription>
-          </Alert>
-          <div className="flex gap-3 justify-center">
-            <Button onClick={() => refetchBinders()} className="rounded-xl bg-binder-accent hover:bg-binder-accent-hover">
-              Retry
-            </Button>
-            <Button onClick={onBack} variant="outline" className="rounded-xl">
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4 max-w-md">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
+          <h3 className="text-lg font-semibold">Failed to Load Binder</h3>
+          <p className="text-sm text-muted-foreground">
+            {error instanceof Error ? error.message : 'An unexpected error occurred'}
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={onBack}>
               Go Back
             </Button>
+            <Button onClick={() => refetchBinders()}>Try Again</Button>
           </div>
         </div>
       </div>
@@ -187,233 +85,89 @@ export default function BinderViewScreen({
   }
 
   if (!binder) {
-    console.log('[BinderViewScreen] Binder not found, showing not found message');
     return (
-      <div className="text-center py-16">
-        <p className="text-binder-text-muted">Binder not found</p>
-        <Button onClick={onBack} className="mt-4 rounded-xl bg-binder-accent hover:bg-binder-accent-hover">
-          Go Back
-        </Button>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto" />
+          <h3 className="text-lg font-semibold">Binder Not Found</h3>
+          <p className="text-sm text-muted-foreground">The requested binder could not be found.</p>
+          <Button onClick={onBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Library
+          </Button>
+        </div>
       </div>
     );
   }
 
-  console.log('[BinderViewScreen] Rendering binder view with', cards.length, 'cards');
-
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <Button
-            onClick={onBack}
-            variant="outline"
-            size="icon"
-            className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text"
-          >
-            <ArrowLeft className="w-5 h-5" />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={onBack} className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Library
+        </Button>
+        <h1 className="text-2xl font-bold">{binder.name}</h1>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onSettings} className="gap-2">
+            <Settings className="h-4 w-4" />
+            Settings
           </Button>
-          <div>
-            <h2 className="text-4xl font-bold text-binder-text font-display">
-              {binder.name}
-            </h2>
-            <p className="text-sm text-binder-text-muted mt-1">
-              {cards.length} {cards.length === 1 ? 'card' : 'cards'} • {layout} grid
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          {cards.length > 0 && (
-            <Button
-              onClick={() => setShowExportDialog(true)}
-              variant="outline"
-              className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text"
-            >
-              <FileDown className="w-5 h-5 mr-2" />
-              Export PDF
-            </Button>
-          )}
-          <Button
-            onClick={onSettings}
-            variant="outline"
-            className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text"
-          >
-            <Settings className="w-5 h-5 mr-2" />
-            Customize
-          </Button>
-          <Button
-            onClick={onAddCard}
-            className="rounded-lg bg-binder-accent hover:bg-binder-accent-hover text-white"
-          >
-            <Plus className="w-5 h-5 mr-2" />
+          <Button onClick={onAddCard} className="gap-2">
+            <Plus className="h-4 w-4" />
             Add Card
           </Button>
         </div>
       </div>
 
-      <div className="relative">
-        <BinderRingsOverlay />
+      <PageSwipeContainer
+        currentPage={currentPage}
+        onSwipeLeft={hasNext ? nextPage : undefined}
+        onSwipeRight={hasPrev ? prevPage : undefined}
+      >
         <BinderFrame theme={binder.theme}>
-          <PageSwipeContainer
-            currentPage={currentPage}
-            onSwipeLeft={hasNext ? nextPage : undefined}
-            onSwipeRight={hasPrev ? prevPage : undefined}
+          <div
+            className="grid gap-4 p-6 w-full h-full"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, 1fr)`,
+              gridTemplateRows: `repeat(${rows}, 1fr)`,
+            }}
           >
-            {cards.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="w-24 h-24 bg-binder-accent/10 rounded-full flex items-center justify-center mb-6">
-                  <BookHeart className="w-12 h-12 text-binder-accent" />
-                </div>
-                <h3 className="text-2xl font-bold text-binder-text mb-2 font-display">
-                  Your binder is empty
-                </h3>
-                <p className="text-binder-text-muted mb-6 max-w-md">
-                  Start building your collection by adding your first photocard
-                </p>
-                <Button
-                  onClick={onAddCard}
-                  className="rounded-xl bg-binder-accent hover:bg-binder-accent-hover text-white"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Add Your First Card
-                </Button>
-              </div>
-            ) : (
+            {currentCards.map((card) => (
               <div
-                className="grid gap-4 p-8"
-                style={{
-                  gridTemplateColumns: `repeat(${cols}, 1fr)`,
-                  gridTemplateRows: `repeat(${rows}, 1fr)`,
-                }}
+                key={card.id}
+                className="relative group cursor-pointer overflow-hidden rounded-lg border-2 border-border bg-card hover:border-primary transition-colors"
+                onClick={() => onEditCard(card.id)}
               >
-                {Array.from({ length: cardsPerPage }).map((_, index) => {
-                  const card = currentCards[index];
-                  const isDragging = draggedIndex === index;
-                  const isDragOver = dragOverIndex === index;
-
-                  if (!card) {
-                    return (
-                      <div
-                        key={`empty-${index}`}
-                        className="aspect-[2.5/3.5] bg-binder-page/30 rounded-lg border-2 border-dashed border-binder-border/30"
-                      />
-                    );
-                  }
-
-                  const editedImageUrl = getEditedImage(card.id);
-                  const imageUrl = editedImageUrl || card.image.getDirectURL();
-                  const conditionPath = getConditionStickerPath(card.condition);
-                  const rarityPath = getRarityBadgePath(card.rarity);
-
-                  return (
-                    <div
-                      key={card.id}
-                      draggable
-                      onDragStart={() => handleDragStart(index)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDrop={(e) => handleDrop(e, index)}
-                      className={`relative aspect-[2.5/3.5] bg-white rounded-lg shadow-card overflow-hidden cursor-move group transition-all ${
-                        isDragging ? 'opacity-50 scale-95' : ''
-                      } ${isDragOver ? 'ring-2 ring-binder-accent' : ''}`}
-                    >
-                      <img
-                        src={imageUrl}
-                        alt={card.name}
-                        className="w-full h-full object-contain"
-                        draggable={false}
-                      />
-
-                      {conditionPath && (
-                        <img
-                          src={conditionPath}
-                          alt={`${card.condition} condition`}
-                          className="absolute top-2 left-2 w-12 h-12 pointer-events-none"
-                          draggable={false}
-                        />
-                      )}
-
-                      {rarityPath && (
-                        <img
-                          src={rarityPath}
-                          alt={`${card.rarity} rarity`}
-                          className="absolute top-2 right-2 w-8 h-8 pointer-events-none"
-                          draggable={false}
-                        />
-                      )}
-
-                      {shouldShowGlint(card.rarity) && (
-                        <img
-                          src={getGlintOverlayPath()}
-                          alt="Legendary glint"
-                          className="absolute inset-0 w-full h-full pointer-events-none opacity-60 mix-blend-screen"
-                          draggable={false}
-                        />
-                      )}
-
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-white">
-                            <GripVertical className="w-4 h-4" />
-                            <span className="text-sm font-medium truncate">{card.name}</span>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            className="rounded-lg"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEditCard(card.id);
-                            }}
-                          >
-                            <Pencil className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                <img
+                  src={card.image.getDirectURL()}
+                  alt={card.name}
+                  className="w-full h-full object-contain"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">Edit Card</span>
+                </div>
               </div>
-            )}
-          </PageSwipeContainer>
-        </BinderFrame>
-
-        {cards.length > 0 && totalPages > 1 && (
-          <div className="flex items-center justify-center gap-4 mt-6">
-            <Button
-              onClick={prevPage}
-              disabled={!hasPrev}
-              variant="outline"
-              size="icon"
-              className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text disabled:opacity-30"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            <span className="text-sm text-binder-text-muted font-medium">
-              Page {currentPage + 1} of {totalPages}
-            </span>
-            <Button
-              onClick={nextPage}
-              disabled={!hasNext}
-              variant="outline"
-              size="icon"
-              className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text disabled:opacity-30"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
+            ))}
+            {Array.from({ length: cardsPerPage - currentCards.length }).map((_, i) => (
+              <div key={`empty-${i}`} className="border-2 border-dashed border-muted rounded-lg" />
+            ))}
           </div>
-        )}
-      </div>
+        </BinderFrame>
+      </PageSwipeContainer>
 
-      {showExportDialog && (
-        <BinderPdfExportDialog
-          open={showExportDialog}
-          onOpenChange={setShowExportDialog}
-          binderName={binder.name}
-          pageNumber={currentPage + 1}
-          cards={currentCards}
-          pageBackground={binder.theme.pageBackground}
-        />
-      )}
+      <div className="flex items-center justify-center gap-4">
+        <Button onClick={prevPage} disabled={!hasPrev} variant="outline">
+          Previous
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          Page {currentPage + 1} of {totalPages}
+        </span>
+        <Button onClick={nextPage} disabled={!hasNext} variant="outline">
+          Next
+        </Button>
+      </div>
     </div>
   );
 }

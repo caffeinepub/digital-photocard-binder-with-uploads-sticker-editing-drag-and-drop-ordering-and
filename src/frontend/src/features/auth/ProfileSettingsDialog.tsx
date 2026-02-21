@@ -1,19 +1,31 @@
-import { useState, useEffect } from 'react';
-import { useGetCallerUserProfile, useSaveCallerUserProfile, useGetLayoutPresets, useGetUserLayout, useUpdateUserLayout, useGetDefaultLayout } from '../../hooks/useQueries';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  useGetCallerUserProfile,
+  useSaveCallerUserProfile,
+  useGetLayoutPresets,
+  useGetUserLayout,
+  useUpdateUserLayout,
+  useGetDefaultLayout,
+} from '../../hooks/useQueries';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 interface ProfileSettingsDialogProps {
   open: boolean;
@@ -21,136 +33,142 @@ interface ProfileSettingsDialogProps {
 }
 
 export default function ProfileSettingsDialog({ open, onOpenChange }: ProfileSettingsDialogProps) {
-  const { data: userProfile, isLoading } = useGetCallerUserProfile();
-  const { data: layoutPresets = [], isLoading: presetsLoading } = useGetLayoutPresets();
-  const { data: currentLayout, isLoading: layoutLoading } = useGetUserLayout();
+  const { data: profile, isLoading: profileLoading } = useGetCallerUserProfile();
+  const { data: presets, isLoading: presetsLoading } = useGetLayoutPresets();
+  const { data: userLayout, isLoading: layoutLoading } = useGetUserLayout();
   const { data: defaultLayout } = useGetDefaultLayout();
-  const { mutate: saveProfile, isPending } = useSaveCallerUserProfile();
-  const { mutate: updateLayout, isPending: layoutPending } = useUpdateUserLayout();
-  
-  const [name, setName] = useState('');
+  const saveProfile = useSaveCallerUserProfile();
+  const updateLayout = useUpdateUserLayout();
+
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [selectedLayout, setSelectedLayout] = useState('');
 
   useEffect(() => {
-    if (userProfile) {
-      setName(userProfile.displayName || userProfile.name);
-      setEmail(userProfile.email || '');
+    if (profile) {
+      setDisplayName(profile.displayName || profile.name || '');
+      setEmail(profile.email || '');
     }
-  }, [userProfile]);
+  }, [profile]);
 
   useEffect(() => {
-    // Set the selected layout to current user layout or default
-    const layoutToUse = currentLayout || defaultLayout || '3x3';
-    setSelectedLayout(layoutToUse);
-  }, [currentLayout, defaultLayout]);
+    if (userLayout) {
+      setSelectedLayout(userLayout);
+    } else if (defaultLayout) {
+      setSelectedLayout(defaultLayout);
+    }
+  }, [userLayout, defaultLayout]);
 
-  const handleSave = () => {
-    if (name.trim() && userProfile) {
-      const layoutChanged = selectedLayout && selectedLayout !== (currentLayout || defaultLayout);
-      
+  const handleSave = async () => {
+    if (!profile) return;
+
+    try {
       // Save profile
-      saveProfile(
-        {
-          name: userProfile.name,
-          displayName: name.trim(),
-          email: email.trim() || undefined,
-          avatarUrl: userProfile.avatarUrl,
-        },
-        {
-          onSuccess: () => {
-            // Save layout preference if changed
-            if (layoutChanged) {
-              updateLayout(selectedLayout, {
-                onSuccess: () => {
-                  toast.success('Settings saved successfully');
-                  onOpenChange(false);
-                },
-                onError: (error) => {
-                  console.error('Layout update failed:', error);
-                  toast.error('Failed to update layout preference');
-                },
-              });
-            } else {
-              toast.success('Profile updated successfully');
-              onOpenChange(false);
-            }
-          },
-          onError: (error) => {
-            console.error('Profile save failed:', error);
-            toast.error('Failed to save profile');
-          },
-        }
-      );
+      await saveProfile.mutateAsync({
+        name: profile.name,
+        displayName: displayName.trim() || undefined,
+        email: email.trim() || undefined,
+        avatarUrl: profile.avatarUrl,
+      });
+
+      // Save layout preference if changed
+      if (selectedLayout && selectedLayout !== userLayout) {
+        await updateLayout.mutateAsync(selectedLayout);
+      }
+
+      toast.success('Settings saved successfully');
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error(`Failed to save settings: ${error.message}`);
     }
   };
 
+  const isLoading = profileLoading || presetsLoading || layoutLoading;
+  const isSaving = saveProfile.isPending || updateLayout.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Profile Settings</DialogTitle>
           <DialogDescription>Update your profile information and preferences</DialogDescription>
         </DialogHeader>
+
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-binder-accent" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="profile-name">Display Name</Label>
+              <Label htmlFor="displayName">Display Name</Label>
               <Input
-                id="profile-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Your display name"
+                disabled={isSaving}
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="profile-email">Email</Label>
+              <Label htmlFor="email">Email Address</Label>
               <Input
-                id="profile-email"
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
+                placeholder="your.email@example.com"
+                disabled={isSaving}
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="binder-view">Binder View</Label>
-              {presetsLoading || layoutLoading ? (
-                <div className="flex items-center justify-center py-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-binder-accent" />
-                </div>
-              ) : (
-                <Select value={selectedLayout} onValueChange={setSelectedLayout}>
-                  <SelectTrigger id="binder-view">
-                    <SelectValue placeholder="Select grid layout" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {layoutPresets.map((preset) => (
+              <Label htmlFor="binderView">Binder View</Label>
+              <Select
+                value={selectedLayout}
+                onValueChange={setSelectedLayout}
+                disabled={isSaving || !presets || presets.length === 0}
+              >
+                <SelectTrigger id="binderView">
+                  <SelectValue placeholder="Select grid layout" />
+                </SelectTrigger>
+                <SelectContent>
+                  {presets && presets.length > 0 ? (
+                    presets.map((preset) => (
                       <SelectItem key={preset} value={preset}>
                         {preset}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <p className="text-xs text-binder-text-muted">
-                Choose how many cards appear per page in your binder
+                    ))
+                  ) : (
+                    <SelectItem value="3x3" disabled>
+                      No layouts available
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose how cards are displayed in your binder
               </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={!displayName.trim() || isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
             </div>
           </div>
         )}
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending || layoutPending}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!name.trim() || isPending || layoutPending}>
-            {isPending || layoutPending ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

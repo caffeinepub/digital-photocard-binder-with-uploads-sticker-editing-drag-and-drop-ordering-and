@@ -173,6 +173,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'authenticateMasterAdminKey' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'createBinder' : IDL.Func([IDL.Text, BinderTheme], [IDL.Text], []),
   'createCheckoutSession' : IDL.Func(
       [IDL.Vec(ShoppingItem), IDL.Text, IDL.Text],
@@ -198,7 +199,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getLayoutPresets' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
-  'getMasterAdminKey' : IDL.Func([], [IDL.Opt(IDL.Text)], []),
+  'getMasterAdminKey' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
   'getStripePublishableKey' : IDL.Func([], [IDL.Text], ['query']),
   'getStripeSessionStatus' : IDL.Func([IDL.Text], [StripeSessionStatus], []),
   'getSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),
@@ -411,6 +412,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'authenticateMasterAdminKey' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'createBinder' : IDL.Func([IDL.Text, BinderTheme], [IDL.Text], []),
     'createCheckoutSession' : IDL.Func(
         [IDL.Vec(ShoppingItem), IDL.Text, IDL.Text],
@@ -436,7 +438,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getLayoutPresets' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
-    'getMasterAdminKey' : IDL.Func([], [IDL.Opt(IDL.Text)], []),
+    'getMasterAdminKey' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
     'getStripePublishableKey' : IDL.Func([], [IDL.Text], ['query']),
     'getStripeSessionStatus' : IDL.Func([IDL.Text], [StripeSessionStatus], []),
     'getSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),

@@ -135,6 +135,7 @@ export interface backendInterface {
     addLayoutPreset(layout: string): Promise<void>;
     addPhotocard(binderId: string, name: string, image: ExternalBlob, position: CardPosition, quantity: bigint, rarity: CardRarity, condition: CardCondition): Promise<string>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    authenticateMasterAdminKey(adminKey: string): Promise<boolean>;
     createBinder(name: string, theme: BinderTheme): Promise<string>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
     deleteBinder(binderId: string): Promise<void>;

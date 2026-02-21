@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { ExternalBlob, CardRarity, CardCondition } from '../backend';
 
 interface AddCardScreenProps {
   binderId: string;
@@ -44,16 +45,22 @@ export default function AddCardScreen({ binderId, onBack, onSuccess }: AddCardSc
     if (!selectedFile || !cardName.trim()) return;
 
     const arrayBuffer = await selectedFile.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
+    const bytes = new Uint8Array(arrayBuffer) as Uint8Array<ArrayBuffer>;
+    
+    // Create ExternalBlob with upload progress tracking
+    const blob = ExternalBlob.fromBytes(bytes).withUploadProgress((percentage) => {
+      setUploadProgress(percentage);
+    });
 
     addPhotocard(
       {
         binderId,
         name: cardName.trim(),
-        imageBytes: bytes,
+        image: blob,
         position: { page: 0n, slot: 0n },
         quantity: 1n,
-        onProgress: (percentage) => setUploadProgress(percentage),
+        rarity: CardRarity.none,
+        condition: CardCondition.none,
       },
       {
         onSuccess: () => {

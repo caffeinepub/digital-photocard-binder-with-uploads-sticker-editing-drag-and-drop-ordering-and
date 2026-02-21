@@ -148,6 +148,7 @@ export interface _SERVICE {
     string
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'authenticateMasterAdminKey' : ActorMethod<[string], boolean>,
   'createBinder' : ActorMethod<[string, BinderTheme], string>,
   'createCheckoutSession' : ActorMethod<
     [Array<ShoppingItem>, string, string],

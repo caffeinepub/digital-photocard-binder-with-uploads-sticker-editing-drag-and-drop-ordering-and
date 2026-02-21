@@ -2,36 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-debug-and-fix-the-binder-view-screen-to-correctly-display-photocard-grids-instead-of-showing-empty-state-investigate-data-fetching-pagination-logic-and-card-rendering-in-binderviewscreen-tsx-to-identify-why-cards-are-not-displaying",
-      "featureTitle": "Debug and fix the Binder View screen to correctly display photocard grids instead of showing empty state. Investigate data fetching, pagination logic, and card rendering in BinderViewScreen.tsx to identify why cards are not displaying.",
+      "featureId": "feature-implement-master-admin-key-verification-prompt-when-accessing-admin-portal-route-hide-and-disable-all-cms-functions-if-the-key-is-incorrect",
+      "featureTitle": "Implement Master Admin Key verification prompt when accessing /admin-portal route; hide and disable all CMS functions if the key is incorrect",
       "files": [
-        "frontend/src/hooks/useBinderPagination.ts",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/screens/BinderViewScreen.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "stripe@3.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-fix-master-admin-key-authentication-in-the-admin-portal-ensure-masteradminkeygate-component-correctly-validates-the-stored-master-admin-key-from-backend-and-grants-access-to-admin-features",
-      "featureTitle": "Fix Master Admin Key authentication in the Admin portal. Ensure MasterAdminKeyGate component correctly validates the stored master admin key from backend and grants access to admin features.",
-      "files": [
-        "frontend/src/features/admin/MasterAdminKeyGate.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/screens/AdminDashboardScreen.tsx"
+        "frontend/src/features/admin/MasterAdminKeyGate.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -50,13 +24,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-error-handling-and-logging-to-identify-root-causes-of-binder-view-failures-include-diagnostics-for-data-loading-query-states-and-render-conditions",
-      "featureTitle": "Add error handling and logging to identify root causes of Binder View failures. Include diagnostics for data loading, query states, and render conditions.",
+      "featureId": "feature-add-functionality-in-the-admin-portal-to-change-the-master-admin-key-and-configure-a-30-minute-inactivity-timeout",
+      "featureTitle": "Add functionality in the Admin Portal to change the Master Admin Key and configure a 30-minute inactivity timeout",
       "files": [
-        "frontend/src/components/system/GlobalLoadingGate.tsx",
-        "frontend/src/hooks/useLoadingDiagnostics.ts",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/screens/BinderViewScreen.tsx"
+        "frontend/src/features/admin/ContentManagerPanel.tsx",
+        "frontend/src/features/admin/MasterAdminKeyGate.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -71,6 +43,253 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-user-oversight-table-in-the-admin-portal-displaying-user-email-join-date-subscription-status-free-pro-and-total-cards-collected",
+      "featureTitle": "Create a User Oversight Table in the Admin Portal displaying 'User Email', 'Join Date', 'Subscription Status (Free/Pro)', and 'Total Cards Collected'",
+      "files": [
+        "frontend/src/features/admin/UsersPanel.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-search-bar-at-the-top-of-the-user-oversight-table-to-filter-users-by-email",
+      "featureTitle": "Add a search bar at the top of the User Oversight Table to filter users by email",
+      "files": [
+        "frontend/src/features/admin/UsersPanel.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-view-binder-button-next-to-each-user-in-the-user-oversight-table-that-opens-a-read-only-view-of-their-complete-collection",
+      "featureTitle": "Add a 'View Binder' button next to each user in the User Oversight Table that opens a read-only view of their complete collection",
+      "files": [
+        "frontend/src/features/admin/AdminUserBinderReadOnlyDialog.tsx",
+        "frontend/src/features/admin/UsersPanel.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-style-the-user-oversight-table-with-zebra-stripes-bold-header-row-pro-status-highlighted-in-green-and-free-status-in-gray",
+      "featureTitle": "Style the User Oversight Table with zebra stripes, bold header row, Pro status highlighted in green, and Free status in gray",
+      "files": [
+        "frontend/src/features/admin/UsersPanel.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-allow-admin-to-manually-change-a-user-s-subscription-status-in-the-user-oversight-table",
+      "featureTitle": "Allow admin to manually change a user's subscription status in the User Oversight Table",
+      "files": [
+        "frontend/src/features/admin/UsersPanel.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-8"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-binder-view-dropdown-in-user-settings-with-grid-layout-options-2x2-3x3-4x3-and-5x4",
+      "featureTitle": "Add a 'Binder View' dropdown in User Settings with grid layout options: '2x2', '3x3', '4x3', and '5x4'",
+      "files": [
+        "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-gallery-view-binderviewscreen-to-dynamically-render-cards-in-a-css-grid-layout-based-on-the-user-s-saved-binder-view-preference",
+      "featureTitle": "Update the Gallery View (BinderViewScreen) to dynamically render cards in a CSS Grid layout based on the user's saved Binder View preference",
+      "files": [
+        "frontend/src/screens/BinderViewScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-11"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-card-images-in-the-gallery-view-resize-automatically-to-fit-the-selected-grid-dimensions-while-maintaining-aspect-ratio",
+      "featureTitle": "Ensure card images in the Gallery View resize automatically to fit the selected grid dimensions while maintaining aspect ratio",
+      "files": [
+        "frontend/src/screens/BinderViewScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-12"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-global-layout-options-section-in-the-admin-portal-to-manage-available-grid-presets",
+      "featureTitle": "Add a 'Global Layout Options' section in the Admin Portal to manage available grid presets",
+      "files": [
+        "frontend/src/screens/AdminDashboardScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-13"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-provide-admin-functionality-to-add-or-remove-grid-presets-e-g-adding-1x1-for-featured-cards-in-the-global-layout-options-section",
+      "featureTitle": "Provide admin functionality to add or remove grid presets (e.g., adding '1x1' for featured cards) in the Global Layout Options section",
+      "files": [
+        "frontend/src/features/admin/LayoutPresetsPanel.tsx",
+        "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-14"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-default-layout-setting-in-the-global-layout-options-that-determines-the-initial-grid-layout-for-new-users",
+      "featureTitle": "Add a 'Default Layout' setting in the Global Layout Options that determines the initial grid layout for new users",
+      "files": [
+        "frontend/src/features/admin/LayoutPresetsPanel.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-15"
       ],
       "confidence": "high"
     }

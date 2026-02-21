@@ -1,50 +1,188 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [
-    "Binder View is not working (shows empty)",
-    "Cannot log in to Admin portal with Master Admin Key"
+  "summary": "A card collection management application with admin portal, user authentication, binder view customization, and subscription management",
+  "architectural_notes": [
+    "Master Admin Key stored as backend environment variable, not hardcoded in frontend",
+    "Admin portal uses session timeout of 30 minutes for inactivity",
+    "User layout preferences stored in user_settings database table",
+    "Gallery View uses dynamic CSS Grid with responsive card sizing"
   ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-debug-and-fix-the-binder-view-screen-to-correctly-display-photocard-grids-instead-of-showing-empty-state-investigate-data-fetching-pagination-logic-and-card-rendering-in-binderviewscreen-tsx-to-identify-why-cards-are-not-displaying",
-      "title": "Debug and fix the Binder View screen to correctly display photocard grids instead of showing empty state. Investigate data fetching, pagination logic, and card rendering in BinderViewScreen.tsx to identify why cards are not displaying.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-master-admin-key-authentication-in-the-admin-portal-ensure-masteradminkeygate-component-correctly-validates-the-stored-master-admin-key-from-backend-and-grants-access-to-admin-features",
-      "title": "Fix Master Admin Key authentication in the Admin portal. Ensure MasterAdminKeyGate component correctly validates the stored master admin key from backend and grants access to admin features.",
+      "id": "feature-implement-master-admin-key-verification-prompt-when-accessing-admin-portal-route-hide-and-disable-all-cms-functions-if-the-key-is-incorrect",
+      "title": "Implement Master Admin Key verification prompt when accessing /admin-portal route; hide and disable all CMS functions if the key is incorrect",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-error-handling-and-logging-to-identify-root-causes-of-binder-view-failures-include-diagnostics-for-data-loading-query-states-and-render-conditions",
-      "title": "Add error handling and logging to identify root causes of Binder View failures. Include diagnostics for data loading, query states, and render conditions.",
+      "id": "feature-add-functionality-in-the-admin-portal-to-change-the-master-admin-key-and-configure-a-30-minute-inactivity-timeout",
+      "title": "Add functionality in the Admin Portal to change the Master Admin Key and configure a 30-minute inactivity timeout",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-user-oversight-table-in-the-admin-portal-displaying-user-email-join-date-subscription-status-free-pro-and-total-cards-collected",
+      "title": "Create a User Oversight Table in the Admin Portal displaying 'User Email', 'Join Date', 'Subscription Status (Free/Pro)', and 'Total Cards Collected'",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-search-bar-at-the-top-of-the-user-oversight-table-to-filter-users-by-email",
+      "title": "Add a search bar at the top of the User Oversight Table to filter users by email",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-view-binder-button-next-to-each-user-in-the-user-oversight-table-that-opens-a-read-only-view-of-their-complete-collection",
+      "title": "Add a 'View Binder' button next to each user in the User Oversight Table that opens a read-only view of their complete collection",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-style-the-user-oversight-table-with-zebra-stripes-bold-header-row-pro-status-highlighted-in-green-and-free-status-in-gray",
+      "title": "Style the User Oversight Table with zebra stripes, bold header row, Pro status highlighted in green, and Free status in gray",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-allow-admin-to-manually-change-a-user-s-subscription-status-in-the-user-oversight-table",
+      "title": "Allow admin to manually change a user's subscription status in the User Oversight Table",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-binder-view-dropdown-in-user-settings-with-grid-layout-options-2x2-3x3-4x3-and-5x4",
+      "title": "Add a 'Binder View' dropdown in User Settings with grid layout options: '2x2', '3x3', '4x3', and '5x4'",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-gallery-view-binderviewscreen-to-dynamically-render-cards-in-a-css-grid-layout-based-on-the-user-s-saved-binder-view-preference",
+      "title": "Update the Gallery View (BinderViewScreen) to dynamically render cards in a CSS Grid layout based on the user's saved Binder View preference",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-card-images-in-the-gallery-view-resize-automatically-to-fit-the-selected-grid-dimensions-while-maintaining-aspect-ratio",
+      "title": "Ensure card images in the Gallery View resize automatically to fit the selected grid dimensions while maintaining aspect ratio",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-global-layout-options-section-in-the-admin-portal-to-manage-available-grid-presets",
+      "title": "Add a 'Global Layout Options' section in the Admin Portal to manage available grid presets",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-admin-functionality-to-add-or-remove-grid-presets-e-g-adding-1x1-for-featured-cards-in-the-global-layout-options-section",
+      "title": "Provide admin functionality to add or remove grid presets (e.g., adding '1x1' for featured cards) in the Global Layout Options section",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-default-layout-setting-in-the-global-layout-options-that-determines-the-initial-grid-layout-for-new-users",
+      "title": "Add a 'Default Layout' setting in the Global Layout Options that determines the initial grid layout for new users",
+      "reqIds": [
+        "REQ-15"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
+      "id": "AR-1",
+      "summary": "Master Admin Key authentication with backend environment variable storage",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Admin key change functionality in portal with 30-minute timeout",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "User Oversight Table with email, join date, subscription status, and card count",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
       "id": "AR-4",
-      "summary": "Verify backend query endpoints for fetching binder cards and Master Admin Key validation are functioning correctly and returning expected data structures.",
+      "summary": "User search by email and View Binder (read-only) functionality",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Manual subscription status change in admin portal",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "User Settings: Binder View dropdown with grid layout options (2x2, 3x3, 4x3, 5x4)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Dynamic Gallery View with CSS Grid based on user preference",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Global Layout Options in Admin Portal for managing grid presets and default layout",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Store the Master Admin Key '7vX#2kL!m9$Q' as a backend environment variable or stable variable in main.mo, not hard-coded in frontend JavaScript",
       "reqIds": [
-        "REQ-4"
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Save the user's Binder View grid layout preference in the backend user profile or user_settings data structure",
+      "reqIds": [
+        "REQ-10"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Fix Binder View empty state and Admin portal Master Admin Key authentication",
+  "projectName": "Card Binder",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

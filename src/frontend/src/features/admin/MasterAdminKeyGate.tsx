@@ -1,32 +1,25 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVerifyMasterAdminKey } from '../../hooks/useQueries';
+import { AlertCircle, Lock } from 'lucide-react';
 
 interface MasterAdminKeyGateProps {
-  children: (unlocked: boolean) => React.ReactNode;
+  onUnlock: () => void;
+  isUnlocked: boolean;
 }
 
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 
-export default function MasterAdminKeyGate({ children }: MasterAdminKeyGateProps) {
-  const [keyInput, setKeyInput] = useState('');
-  const [unlocked, setUnlocked] = useState(false);
-  const [error, setError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+export function MasterAdminKeyGate({ onUnlock, isUnlocked }: MasterAdminKeyGateProps) {
+  const [key, setKey] = useState('');
+  const [error, setError] = useState('');
   const [lastActivity, setLastActivity] = useState(Date.now());
+  const verifyKey = useVerifyMasterAdminKey();
 
-  const verifyMutation = useVerifyMasterAdminKey();
-
-  console.log('[MasterAdminKeyGate] Component state:', {
-    unlocked,
-    error,
-    isPending: verifyMutation.isPending,
-  });
+  console.log('[MasterAdminKeyGate] Component rendered. isUnlocked:', isUnlocked);
 
   // Track user activity
   const handleActivity = useCallback(() => {
@@ -35,130 +28,107 @@ export default function MasterAdminKeyGate({ children }: MasterAdminKeyGateProps
 
   // Set up activity listeners
   useEffect(() => {
-    if (!unlocked) return;
+    if (!isUnlocked) return;
 
-    console.log('[MasterAdminKeyGate] Setting up activity listeners');
-    const events = ['mousedown', 'keydown', 'touchstart', 'scroll', 'mousemove'];
-    events.forEach(event => {
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'];
+    events.forEach((event) => {
       window.addEventListener(event, handleActivity);
     });
 
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         window.removeEventListener(event, handleActivity);
       });
     };
-  }, [unlocked, handleActivity]);
+  }, [isUnlocked, handleActivity]);
 
   // Check for inactivity timeout
   useEffect(() => {
-    if (!unlocked) return;
+    if (!isUnlocked) return;
 
-    console.log('[MasterAdminKeyGate] Starting inactivity timeout monitor');
     const interval = setInterval(() => {
       const timeSinceLastActivity = Date.now() - lastActivity;
       if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
-        console.log('[MasterAdminKeyGate] Inactivity timeout reached, locking portal');
-        setUnlocked(false);
-        setKeyInput('');
-        setError(false);
-        setErrorMessage('');
+        console.log('[MasterAdminKeyGate] Inactivity timeout reached. Locking admin portal.');
+        window.location.reload(); // Force reload to lock the portal
       }
     }, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, [unlocked, lastActivity]);
+  }, [isUnlocked, lastActivity]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(false);
-    setErrorMessage('');
+    setError('');
 
-    console.log('[MasterAdminKeyGate] Submitting key for verification, length:', keyInput.length);
-
-    if (!keyInput.trim()) {
-      console.log('[MasterAdminKeyGate] Empty key input');
-      setError(true);
-      setErrorMessage('Please enter a master admin key');
+    const trimmedKey = key.trim();
+    if (!trimmedKey) {
+      setError('Please enter the Master Admin Key');
       return;
     }
 
+    console.log('[MasterAdminKeyGate] Verifying key...');
+
     try {
-      const isValid = await verifyMutation.mutateAsync(keyInput);
-      console.log('[MasterAdminKeyGate] Verification result:', isValid);
-      
+      const isValid = await verifyKey.mutateAsync(trimmedKey);
+      console.log('[MasterAdminKeyGate] Key verification result:', isValid);
+
       if (isValid) {
-        console.log('[MasterAdminKeyGate] Key verified successfully, unlocking portal');
-        setUnlocked(true);
-        setLastActivity(Date.now());
+        console.log('[MasterAdminKeyGate] Key verified successfully. Unlocking admin portal.');
+        onUnlock();
+        setKey('');
       } else {
-        console.log('[MasterAdminKeyGate] Key verification failed');
-        setError(true);
-        setErrorMessage('Incorrect master key. Please try again.');
-        setKeyInput('');
+        console.log('[MasterAdminKeyGate] Key verification failed. Invalid key.');
+        setError('Invalid Master Admin Key. Please try again.');
       }
-    } catch (err) {
-      console.error('[MasterAdminKeyGate] Key verification error:', err);
-      setError(true);
-      setErrorMessage('Failed to verify key. Please check your connection and try again.');
-      setKeyInput('');
+    } catch (err: any) {
+      console.error('[MasterAdminKeyGate] Error verifying key:', err);
+      setError(`Verification failed: ${err.message || 'Unknown error'}`);
     }
   };
 
-  if (unlocked) {
-    console.log('[MasterAdminKeyGate] Portal unlocked, rendering children');
-    return <>{children(true)}</>;
+  if (isUnlocked) {
+    console.log('[MasterAdminKeyGate] Admin portal is unlocked. Rendering null.');
+    return null;
   }
 
-  console.log('[MasterAdminKeyGate] Portal locked, showing key input form');
+  console.log('[MasterAdminKeyGate] Admin portal is locked. Rendering key entry form.');
 
   return (
-    <div className="max-w-md mx-auto mt-12">
-      <Card>
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-binder-accent/20 rounded-lg flex items-center justify-center">
-              <Lock className="w-6 h-6 text-binder-accent" />
-            </div>
-            <div>
-              <CardTitle>Master Admin Key Required</CardTitle>
-              <CardDescription>Enter the master key to unlock admin controls</CardDescription>
-            </div>
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="h-6 w-6 text-primary" />
+            <CardTitle>Admin Portal Access</CardTitle>
           </div>
+          <CardDescription>Enter the Master Admin Key to access admin functions</CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{errorMessage || 'Incorrect master key. Please try again.'}</AlertDescription>
-            </Alert>
-          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="master-key">Master Admin Key</Label>
+              <Label htmlFor="adminKey">Master Admin Key</Label>
               <Input
-                id="master-key"
+                id="adminKey"
                 type="password"
-                value={keyInput}
-                onChange={(e) => setKeyInput(e.target.value)}
-                placeholder="Enter master key"
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+                placeholder="Enter key"
+                disabled={verifyKey.isPending}
                 autoFocus
-                required
-                disabled={verifyMutation.isPending}
               />
-              <p className="text-xs text-muted-foreground">
-                Default key: 7vX#2kL!m9$Q (change this in Content Manager after unlocking)
+              {error && (
+                <div className="flex items-start gap-2 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground mt-2">
+                Default key format: <code className="bg-muted px-1 py-0.5 rounded">7vX#2kL!m9$Q</code>
               </p>
             </div>
-            <Button type="submit" className="w-full" disabled={verifyMutation.isPending}>
-              {verifyMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                'Unlock Admin Portal'
-              )}
+            <Button type="submit" className="w-full" disabled={verifyKey.isPending}>
+              {verifyKey.isPending ? 'Verifying...' : 'Unlock Admin Portal'}
             </Button>
           </form>
         </CardContent>

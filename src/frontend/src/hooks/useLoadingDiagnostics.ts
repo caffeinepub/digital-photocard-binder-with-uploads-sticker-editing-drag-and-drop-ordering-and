@@ -6,6 +6,7 @@ interface LoadingState {
   profileError: boolean;
   bindersLoading?: boolean;
   bindersError?: boolean;
+  bindersCount?: number;
 }
 
 /**
@@ -59,6 +60,9 @@ export function useLoadingDiagnostics(
       } else if (state.bindersLoading) {
         console.log('  ⏳ Fetching binders from backend');
         console.log('     → This may take longer if you have many binders');
+      } else if (typeof state.bindersCount === 'number') {
+        console.log(`  ℹ️  Binders loaded: ${state.bindersCount} binder(s)`);
+        console.log('     → If binder view is empty, check console for card data');
       }
       
       console.log('───────────────────────────────────────────────────────');
@@ -66,6 +70,7 @@ export function useLoadingDiagnostics(
       console.log('     1. Refresh the page (Ctrl+R or Cmd+R)');
       console.log('     2. Check your internet connection');
       console.log('     3. Clear browser cache and try again');
+      console.log('     4. Check browser console for detailed error messages');
       console.log('═══════════════════════════════════════════════════════');
     }, thresholdMs);
 

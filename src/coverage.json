@@ -1,87 +1,202 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T19:50:33.688Z",
+  "generatedAt": "2026-02-21T20:52:31.671Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 15,
+    "implemented": 13,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Debug and fix the Binder View screen to correctly display photocard grids instead of showing empty state. Investigate data fetching, pagination logic, and card rendering in BinderViewScreen.tsx to identify why cards are not displaying.",
+        "summary": "Store the Master Admin Key '7vX#2kL!m9$Q' as a backend environment variable or stable variable in main.mo, not hard-coded in frontend JavaScript",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-10",
+        "summary": "Save the user's Binder View grid layout preference in the backend user profile or user_settings data structure",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-11",
+        "summary": "Update the Gallery View (BinderViewScreen) to dynamically render cards in a CSS Grid layout based on the user's saved Binder View preference",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/screens/BinderViewScreen.tsx",
-          "frontend/src/hooks/useBinderPagination.ts",
+          "frontend/src/screens/BinderViewScreen.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/screens/BinderViewScreen.tsx"
+        ]
+      },
+      {
+        "id": "REQ-12",
+        "summary": "Ensure card images in the Gallery View resize automatically to fit the selected grid dimensions while maintaining aspect ratio",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/screens/BinderViewScreen.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/screens/BinderViewScreen.tsx"
+        ]
+      },
+      {
+        "id": "REQ-13",
+        "summary": "Add a 'Global Layout Options' section in the Admin Portal to manage available grid presets",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/screens/AdminDashboardScreen.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/screens/AdminDashboardScreen.tsx"
+        ]
+      },
+      {
+        "id": "REQ-14",
+        "summary": "Provide admin functionality to add or remove grid presets (e.g., adding '1x1' for featured cards) in the Global Layout Options section",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/admin/LayoutPresetsPanel.tsx",
+          "frontend/src/features/auth/ProfileSettingsDialog.tsx",
           "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/screens/BinderViewScreen.tsx",
-          "frontend/src/hooks/useBinderPagination.ts",
+          "frontend/src/features/admin/LayoutPresetsPanel.tsx",
+          "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-15",
+        "summary": "Add a 'Default Layout' setting in the Global Layout Options that determines the initial grid layout for new users",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/admin/LayoutPresetsPanel.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/admin/LayoutPresetsPanel.tsx",
           "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Fix Master Admin Key authentication in the Admin portal. Ensure MasterAdminKeyGate component correctly validates the stored master admin key from backend and grants access to admin features.",
+        "summary": "Implement Master Admin Key verification prompt when accessing /admin-portal route; hide and disable all CMS functions if the key is incorrect",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/features/admin/MasterAdminKeyGate.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/screens/AdminDashboardScreen.tsx"
+          "frontend/src/features/admin/MasterAdminKeyGate.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/features/admin/MasterAdminKeyGate.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/screens/AdminDashboardScreen.tsx"
+          "frontend/src/features/admin/MasterAdminKeyGate.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Add error handling and logging to identify root causes of Binder View failures. Include diagnostics for data loading, query states, and render conditions.",
+        "summary": "Add functionality in the Admin Portal to change the Master Admin Key and configure a 30-minute inactivity timeout",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/screens/BinderViewScreen.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/system/GlobalLoadingGate.tsx",
-          "frontend/src/hooks/useLoadingDiagnostics.ts"
+          "frontend/src/features/admin/ContentManagerPanel.tsx",
+          "frontend/src/features/admin/MasterAdminKeyGate.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/screens/BinderViewScreen.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/system/GlobalLoadingGate.tsx",
-          "frontend/src/hooks/useLoadingDiagnostics.ts"
+          "frontend/src/features/admin/ContentManagerPanel.tsx",
+          "frontend/src/features/admin/MasterAdminKeyGate.tsx"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "Verify backend query endpoints for fetching binder cards and Master Admin Key validation are functioning correctly and returning expected data structures.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Create a User Oversight Table in the Admin Portal displaying 'User Email', 'Join Date', 'Subscription Status (Free/Pro)', and 'Total Cards Collected'",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Add a search bar at the top of the User Oversight Table to filter users by email",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Add a 'View Binder' button next to each user in the User Oversight Table that opens a read-only view of their complete collection",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx",
+          "frontend/src/features/admin/AdminUserBinderReadOnlyDialog.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx",
+          "frontend/src/features/admin/AdminUserBinderReadOnlyDialog.tsx"
+        ]
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Style the User Oversight Table with zebra stripes, bold header row, Pro status highlighted in green, and Free status in gray",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx"
+        ]
+      },
+      {
+        "id": "REQ-8",
+        "summary": "Allow admin to manually change a user's subscription status in the User Oversight Table",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/admin/UsersPanel.tsx"
+        ]
+      },
+      {
+        "id": "REQ-9",
+        "summary": "Add a 'Binder View' dropdown in User Settings with grid layout options: '2x2', '3x3', '4x3', and '5x4'",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/system/GlobalLoadingGate.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
+    "frontend/src/features/admin/AdminUserBinderReadOnlyDialog.tsx",
+    "frontend/src/features/admin/ContentManagerPanel.tsx",
+    "frontend/src/features/admin/LayoutPresetsPanel.tsx",
     "frontend/src/features/admin/MasterAdminKeyGate.tsx",
-    "frontend/src/hooks/useBinderPagination.ts",
-    "frontend/src/hooks/useLoadingDiagnostics.ts",
+    "frontend/src/features/admin/UsersPanel.tsx",
+    "frontend/src/features/auth/ProfileSettingsDialog.tsx",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/screens/AddCardScreen.tsx",
     "frontend/src/screens/AdminDashboardScreen.tsx",
     "frontend/src/screens/BinderViewScreen.tsx",
     "project_state.json",

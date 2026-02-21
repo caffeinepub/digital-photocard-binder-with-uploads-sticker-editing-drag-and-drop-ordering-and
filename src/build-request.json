@@ -1,88 +1,296 @@
 {
   "kind": "build_request",
-  "title": "Fix Binder View empty state and Admin portal Master Admin Key authentication",
-  "priority": "high",
+  "title": "Admin Portal Master Key, User Oversight Table, and Dynamic Binder Grid Layouts",
+  "projectName": "Card Binder",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Debug and fix the Binder View screen to correctly display photocard grids instead of showing empty state. Investigate data fetching, pagination logic, and card rendering in BinderViewScreen.tsx to identify why cards are not displaying.",
-      "target": "both",
+      "text": "Store the Master Admin Key '7vX#2kL!m9$Q' as a backend environment variable or stable variable in main.mo, not hard-coded in frontend JavaScript",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-4"
         ],
         "quotes": [
-          "The \"Binder View\" is not working (empty)"
+          "Set the Master Admin Key to 7vX#2kL!m9$Q. Do not hard-code this directly into the frontend Javascript; store it as a backend environment variable."
         ]
       },
       "acceptanceCriteria": [
-        "Binder View screen displays photocard grids when binders contain cards",
-        "Empty state is only shown when binder genuinely has no cards",
-        "Card images, overlays, and metadata render correctly",
-        "Page navigation works when multiple pages exist"
+        "Master Admin Key is stored in backend state, not in frontend code",
+        "Backend provides a verification method that accepts a key string and returns success/failure"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix Master Admin Key authentication in the Admin portal. Ensure MasterAdminKeyGate component correctly validates the stored master admin key from backend and grants access to admin features.",
-      "target": "both",
+      "text": "Implement Master Admin Key verification prompt when accessing /admin-portal route; hide and disable all CMS functions if the key is incorrect",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-4"
         ],
         "quotes": [
-          "couldn't log in to Admin portal with my Master Admin Key"
+          "When I access the /admin-portal, the app should prompt for this key. If the key is incorrect, the CMS functions must remain hidden and disabled."
         ]
       },
       "acceptanceCriteria": [
-        "Master Admin Key input correctly validates against backend-stored key",
-        "Successful authentication unlocks all admin panel features",
-        "Authentication persists for 30 minutes as designed",
-        "Clear error messages shown for invalid or missing keys"
+        "Admin portal displays a key entry prompt before showing CMS functions",
+        "Incorrect key prevents access to Content Manager, User Oversight, Layout Options, and Payment Settings",
+        "Correct key unlocks all admin functionality"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Add error handling and logging to identify root causes of Binder View failures. Include diagnostics for data loading, query states, and render conditions.",
-      "target": "frontend",
+      "text": "Add functionality in the Admin Portal to change the Master Admin Key and configure a 30-minute inactivity timeout",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-4"
+        ],
+        "quotes": [
+          "Allow me to change this Master Admin Key in the portal, and set the time-out when no activity in 30 mintues."
         ]
       },
       "acceptanceCriteria": [
-        "Console logs provide clear diagnostics when Binder View fails to load",
-        "Error states display helpful messages to users",
-        "Loading states are correctly managed during data fetching"
+        "Admin Portal includes a section to update the Master Admin Key",
+        "New key is saved to backend state",
+        "30-minute inactivity timeout is enforced; admin is locked out after 30 minutes of no activity",
+        "Any admin action resets the timeout timer"
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Verify backend query endpoints for fetching binder cards and Master Admin Key validation are functioning correctly and returning expected data structures.",
-      "target": "backend",
+      "text": "Create a User Oversight Table in the Admin Portal displaying 'User Email', 'Join Date', 'Subscription Status (Free/Pro)', and 'Total Cards Collected'",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-4"
+        ],
+        "quotes": [
+          "Inside the Admin Portal, build a User Oversight Table. 1. Data Columns: Display 'User Email', 'Join Date', 'Subscription Status (Free/Pro)', and 'Total Cards Collected'."
         ]
       },
       "acceptanceCriteria": [
-        "Backend endpoints return cards in correct format for BinderViewScreen",
-        "Master Admin Key validation logic in backend works correctly",
-        "Query responses include all required fields (images, metadata, pagination)"
+        "Backend provides a query method returning all users with email, joinDate, subscriptionStatus, and total cards count",
+        "Admin Portal renders a table with these four columns",
+        "Join Date is formatted in a human-readable format",
+        "Total Cards Collected aggregates all cards across all binders for each user"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add a search bar at the top of the User Oversight Table to filter users by email",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "2. Functionality: Add a search bar at the top to find users by email."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Search bar appears above the User Oversight Table",
+        "Typing in the search bar filters the table to show only users whose email contains the search term",
+        "Search is case-insensitive"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Add a 'View Binder' button next to each user in the User Oversight Table that opens a read-only view of their complete collection",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "3. Actions: Add a 'View Binder' button next to each user that allows me to see their collection in read-only mode."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each user row includes a 'View Binder' button",
+        "Clicking the button opens a modal or page showing all binders and cards for that user",
+        "The view is read-only; admin cannot edit or delete cards",
+        "Backend provides a method to fetch all binders and cards for a given user principal"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Style the User Oversight Table with zebra stripes, bold header row, Pro status highlighted in green, and Free status in gray",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "4. Styling: Use a clean, striped table layout (Zebra stripes) with a bold header row. If a user is 'Pro', highlight their status in green; if 'Free', show it in gray."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Table rows alternate background colors (zebra stripes)",
+        "Header row uses bold font weight",
+        "Pro subscription status is displayed with green text or background",
+        "Free subscription status is displayed with gray text or background"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Allow admin to manually change a user's subscription status in the User Oversight Table",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "5. Allow me to manually change the subscription status."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each user row includes a control (dropdown or toggle) to change subscription status between Free and Pro",
+        "Backend provides an update method to change a user's subscription status",
+        "Changes persist and are reflected immediately in the table"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add a 'Binder View' dropdown in User Settings with grid layout options: '2x2', '3x3', '4x3', and '5x4'",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "1 - In the User Settings, add a dropdown menu called 'Binder View' with options: '2x2', '3x3', '4x3', and '5x4'."
+        ]
+      },
+      "acceptanceCriteria": [
+        "User Settings (ProfileSettingsDialog) includes a 'Binder View' dropdown",
+        "Dropdown lists options: '2x2', '3x3', '4x3', '5x4'",
+        "Current selection is pre-populated from user's saved preference"
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Save the user's Binder View grid layout preference in the backend user profile or user_settings data structure",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "2 - Save this preference in the user_settings database table."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend UserProfile type includes a field for layout preference (e.g., 'layoutPreset' or 'binderViewGrid')",
+        "Update profile method persists the selected grid layout",
+        "Query methods return the saved layout preference"
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Update the Gallery View (BinderViewScreen) to dynamically render cards in a CSS Grid layout based on the user's saved Binder View preference",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "3 - Update the Gallery View to be dynamic: Use CSS Grid logic where the number of columns and rows is determined by the user's saved preference."
+        ]
+      },
+      "acceptanceCriteria": [
+        "BinderViewScreen reads the user's layout preference from their profile",
+        "CSS Grid columns and rows are set dynamically (e.g., '2x2' = 2 columns, 2 rows)",
+        "Grid layout updates immediately when user changes their preference"
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Ensure card images in the Gallery View resize automatically to fit the selected grid dimensions while maintaining aspect ratio",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "4 - Ensure the card images resize automatically to fit the new grid dimensions while maintaining their aspect ratio."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Card images scale proportionally to fill grid cells",
+        "Aspect ratio is preserved (no distortion)",
+        "Images fit within grid bounds without overflow"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Add a 'Global Layout Options' section in the Admin Portal to manage available grid presets",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "5 - In the Admin Portal, add a section for 'Global Layout Options'."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin Portal includes a 'Global Layout Options' panel or tab",
+        "Panel is accessible after Master Admin Key verification"
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "text": "Provide admin functionality to add or remove grid presets (e.g., adding '1x1' for featured cards) in the Global Layout Options section",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "6 - Include a field where I can add or remove grid presets (e.g., adding a '1x1' for featured cards)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin can input new grid preset labels (e.g., '1x1', '6x2')",
+        "Admin can delete existing presets",
+        "Backend stores the list of available presets in admin settings",
+        "User Settings dropdown dynamically reflects the current list of presets"
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Add a 'Default Layout' setting in the Global Layout Options that determines the initial grid layout for new users",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "7 - Add a 'Default Layout' setting that determines what new users see when they first sign up."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin Portal includes a 'Default Layout' dropdown showing all available presets",
+        "Selected default is saved to backend admin settings",
+        "New user profiles are created with the default layout preference",
+        "Existing users retain their custom preferences"
       ]
     }
   ],
   "constraints": [
-    "Do not modify authentication flow or Internet Identity integration",
-    "Preserve existing admin portal panel structure and layout",
-    "Maintain 30-minute admin session timeout behavior",
-    "Keep existing drag-and-drop reordering functionality intact"
+    "Master Admin Key must not be hard-coded in frontend JavaScript files",
+    "Admin Portal CMS functions must remain completely hidden and disabled when Master Admin Key is incorrect",
+    "User Oversight Table 'View Binder' functionality must be strictly read-only",
+    "Do not modify useInternetIdentity.ts, useInternetIdentity.tsx, useActor.ts, main.tsx, or components in frontend/src/components/ui as they are immutable"
   ],
   "nonGoals": [
-    "Adding new admin features or panels",
-    "Changing binder UI design or layout",
-    "Modifying subscription or payment logic",
-    "Creating new card management features"
+    "Multi-factor authentication or additional security layers beyond Master Admin Key",
+    "Real-time user activity monitoring or session tracking",
+    "Automated subscription tier changes based on payment events",
+    "Custom grid dimensions outside of predefined presets",
+    "User-to-user binder sharing or collaborative editing"
   ],
   "imageRequirements": {
     "required": [],

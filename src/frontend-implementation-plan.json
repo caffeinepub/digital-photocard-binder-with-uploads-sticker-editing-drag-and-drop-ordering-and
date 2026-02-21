@@ -1,90 +1,248 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Binder View empty state and Admin portal Master Admin Key authentication",
+  "title": "Admin Portal Master Key, User Oversight Table, and Dynamic Binder Grid Layouts",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Debug and fix the Binder View screen to correctly display photocard grids instead of showing empty state",
-      "acceptanceCriteria": [
-        "Binder View screen displays photocard grids when binders contain cards",
-        "Empty state is only shown when binder genuinely has no cards",
-        "Card images, overlays, and metadata render correctly",
-        "Page navigation works when multiple pages exist"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/screens/BinderViewScreen.tsx",
-          "operation": "modify",
-          "description": "Add comprehensive diagnostic logging to identify why cards are not rendering. Log the raw binders data from useGetBinders query, the selectedBinder object, cards array length, currentPageCards from useBinderPagination, and rendering conditions. Add error boundaries and loading state checks. Verify that cards.length > 0 condition correctly determines when to show the grid vs empty state. Ensure the DndContext and card mapping logic executes when cards exist."
-        },
-        {
-          "path": "frontend/src/hooks/useBinderPagination.ts",
-          "operation": "modify",
-          "description": "Add console logging to track pagination calculations: log cardsPerPage value, totalPages calculation, currentPage state, and the currentPageCards slice operation. Verify that the slice indices are correct and that cards are not being filtered out incorrectly. Log when page boundaries are hit to ensure navigation logic works correctly."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add diagnostic logging to useGetBinders hook to track query status, data fetching progress, and the structure of returned binder data. Log when the query succeeds, the number of binders returned, and a sample of card data structure. Add timeout error handling and verify that promiseTimeout is not prematurely terminating requests. Ensure cards array within each binder is properly populated."
-        }
-      ]
-    },
-    {
       "id": "REQ-2",
-      "summary": "Fix Master Admin Key authentication in the Admin portal to correctly validate stored key and grant access",
+      "summary": "Implement Master Admin Key verification prompt when accessing /admin-portal route; hide and disable all CMS functions if the key is incorrect",
       "acceptanceCriteria": [
-        "Master Admin Key input correctly validates against backend-stored key",
-        "Successful authentication unlocks all admin panel features",
-        "Authentication persists for 30 minutes as designed",
-        "Clear error messages shown for invalid or missing keys"
+        "Admin portal displays a key entry prompt before showing CMS functions",
+        "Incorrect key prevents access to Content Manager, User Oversight, Layout Options, and Payment Settings",
+        "Correct key unlocks all admin functionality"
       ],
       "file_operations": [
         {
           "path": "frontend/src/features/admin/MasterAdminKeyGate.tsx",
           "operation": "modify",
-          "description": "Debug the key validation flow by adding detailed logging: log when getMasterAdminKey is called, the retrieved key value (masked for security), the user-submitted key (masked), and the comparison result. Verify the string comparison logic handles null/undefined cases correctly. Add error handling for backend query failures. Log the unlock state changes and session timeout behavior. Ensure the 30-minute inactivity timer correctly tracks user activity and maintains the unlocked state."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add diagnostic logging to useGetMasterAdminKey hook to verify the backend query executes correctly and returns the expected key format. Log query status, loading states, and any errors. Ensure the actor is properly initialized before calling getMasterAdminKey. Add retry logic if the query fails due to network issues."
-        },
-        {
-          "path": "frontend/src/screens/AdminDashboardScreen.tsx",
-          "operation": "modify",
-          "description": "Add logging to track when MasterAdminKeyGate mounts, when it grants access, and when tabs become enabled. Verify that the unlocked prop correctly propagates to child panels (ContentManagerPanel, UsersPanel, LayoutPresetsPanel, PaymentSettingsPanel). Log any rendering issues that might prevent admin features from displaying after successful authentication."
+          "description": "Update the MasterAdminKeyGate component to call the backend authenticateMasterAdminKey method for verification instead of checking against a hardcoded value. Ensure the component prompts for the key before rendering admin content and blocks access when verification fails. Maintain the existing 30-minute inactivity timeout and activity tracking functionality."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Add error handling and logging to identify root causes of Binder View failures with clear diagnostics",
+      "summary": "Add functionality in the Admin Portal to change the Master Admin Key and configure a 30-minute inactivity timeout",
       "acceptanceCriteria": [
-        "Console logs provide clear diagnostics when Binder View fails to load",
-        "Error states display helpful messages to users",
-        "Loading states are correctly managed during data fetching"
+        "Admin Portal includes a section to update the Master Admin Key",
+        "New key is saved to backend state",
+        "30-minute inactivity timeout is enforced; admin is locked out after 30 minutes of no activity",
+        "Any admin action resets the timeout timer"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/admin/ContentManagerPanel.tsx",
+          "operation": "modify",
+          "description": "Add a new section to the ContentManagerPanel for updating the Master Admin Key. Include an input field for entering the new key, validation for non-empty values, and a save button that calls the backend updateMasterAdminKey method. Display success/error feedback after the operation completes."
+        },
+        {
+          "path": "frontend/src/features/admin/MasterAdminKeyGate.tsx",
+          "operation": "modify",
+          "description": "Verify that the existing 30-minute inactivity timeout implementation correctly tracks user activity (clicks, keystrokes, mouse movements) and locks the admin out after 30 minutes of inactivity. Ensure any admin action resets the timeout timer. This requirement overlaps with REQ-2, so coordinate changes accordingly."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Create a User Oversight Table in the Admin Portal displaying 'User Email', 'Join Date', 'Subscription Status (Free/Pro)', and 'Total Cards Collected'",
+      "acceptanceCriteria": [
+        "Backend provides a query method returning all users with email, joinDate, subscriptionStatus, and total cards count",
+        "Admin Portal renders a table with these four columns",
+        "Join Date is formatted in a human-readable format",
+        "Total Cards Collected aggregates all cards across all binders for each user"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/admin/UsersPanel.tsx",
+          "operation": "modify",
+          "description": "Update the UsersPanel component to display the User Oversight Table with four columns: 'User Email', 'Join Date', 'Subscription Status', and 'Total Cards Collected'. Fetch user data using the backend getAllUsers method which returns UserAnalytics data. Format the Join Date (Time bigint) into a human-readable format using date formatting utilities. Display subscription status and card count from the analytics data. Ensure the table is only visible when the MasterAdminKeyGate is unlocked."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add a search bar at the top of the User Oversight Table to filter users by email",
+      "acceptanceCriteria": [
+        "Search bar appears above the User Oversight Table",
+        "Typing in the search bar filters the table to show only users whose email contains the search term",
+        "Search is case-insensitive"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/admin/UsersPanel.tsx",
+          "operation": "modify",
+          "description": "Add a search input field above the User Oversight Table. Implement local filtering logic that filters the displayed users by email using case-insensitive string matching. Use the normalizeEmail utility from frontend/src/utils/normalizeEmail.ts for case-insensitive comparison. Update the table to display only users matching the search term as the user types."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Add a 'View Binder' button next to each user in the User Oversight Table that opens a read-only view of their complete collection",
+      "acceptanceCriteria": [
+        "Each user row includes a 'View Binder' button",
+        "Clicking the button opens a modal or page showing all binders and cards for that user",
+        "The view is read-only; admin cannot edit or delete cards",
+        "Backend provides a method to fetch all binders and cards for a given user principal"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/admin/UsersPanel.tsx",
+          "operation": "modify",
+          "description": "Add a 'View Binder' button to each user row in the User Oversight Table. When clicked, open the AdminUserBinderReadOnlyDialog component (which already exists) and pass the user's principal to fetch their binders using the backend getBindersByUser method. Wire the button click handler to manage the dialog open state and selected user principal."
+        },
+        {
+          "path": "frontend/src/features/admin/AdminUserBinderReadOnlyDialog.tsx",
+          "operation": "modify",
+          "description": "Review the existing AdminUserBinderReadOnlyDialog component to ensure it correctly fetches and displays all binders and cards for the specified user in read-only mode. Verify that no edit or delete controls are exposed. Ensure proper loading states and error handling are in place."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Style the User Oversight Table with zebra stripes, bold header row, Pro status highlighted in green, and Free status in gray",
+      "acceptanceCriteria": [
+        "Table rows alternate background colors (zebra stripes)",
+        "Header row uses bold font weight",
+        "Pro subscription status is displayed with green text or background",
+        "Free subscription status is displayed with gray text or background"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/admin/UsersPanel.tsx",
+          "operation": "modify",
+          "description": "Apply zebra-striped styling to table rows using alternating background colors (e.g., alternate rows with bg-gray-50 or bg-white). Style the header row with bold font weight (font-bold class). Apply conditional styling to the Subscription Status column: green text or background (e.g., text-green-600 or bg-green-100) for 'pro' status, and gray text or background (e.g., text-gray-500 or bg-gray-100) for 'free' status. Use Tailwind CSS classes consistent with the existing design system."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Allow admin to manually change a user's subscription status in the User Oversight Table",
+      "acceptanceCriteria": [
+        "Each user row includes a control (dropdown or toggle) to change subscription status between Free and Pro",
+        "Backend provides an update method to change a user's subscription status",
+        "Changes persist and are reflected immediately in the table"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/admin/UsersPanel.tsx",
+          "operation": "modify",
+          "description": "Add a dropdown or toggle control in each user row to change subscription status between 'free' and 'pro'. When changed, call the backend updateSubscriptionStatus method with the user's principal and new status. Use React Query mutation to handle the update, and invalidate the users query to refresh the table immediately after a successful change. Display loading/error states during the mutation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Add a 'Binder View' dropdown in User Settings with grid layout options: '2x2', '3x3', '4x3', and '5x4'",
+      "acceptanceCriteria": [
+        "User Settings (ProfileSettingsDialog) includes a 'Binder View' dropdown",
+        "Dropdown lists options: '2x2', '3x3', '4x3', '5x4'",
+        "Current selection is pre-populated from user's saved preference"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+          "operation": "modify",
+          "description": "Add a 'Binder View' dropdown to the ProfileSettingsDialog component. Fetch the user's current layout preference using the backend getUserLayout method. Populate the dropdown with layout options ('2x2', '3x3', '4x3', '5x4'). Pre-select the user's saved preference. When the user changes the selection, call the backend updateUserLayout method to persist the new preference. Use React Query to fetch and mutate the layout preference."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add new React Query hooks for fetching and updating user layout preferences: useGetUserLayout (calls getUserLayout) and useUpdateUserLayout (calls updateUserLayout). Follow the existing pattern for query/mutation hooks with proper error handling, timeout configuration, and query invalidation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "summary": "Update the Gallery View (BinderViewScreen) to dynamically render cards in a CSS Grid layout based on the user's saved Binder View preference",
+      "acceptanceCriteria": [
+        "BinderViewScreen reads the user's layout preference from their profile",
+        "CSS Grid columns and rows are set dynamically (e.g., '2x2' = 2 columns, 2 rows)",
+        "Grid layout updates immediately when user changes their preference"
       ],
       "file_operations": [
         {
           "path": "frontend/src/screens/BinderViewScreen.tsx",
           "operation": "modify",
-          "description": "Wrap the main rendering logic in error boundaries with try-catch blocks. Add user-friendly error messages that display when data fetching fails, when selectedBinder is undefined, or when card rendering fails. Show loading spinner with status text during data fetching. Add a retry button that refetches binders data. Log all error objects with full stack traces to console for debugging."
+          "description": "Update the BinderViewScreen component to fetch the user's layout preference using the useGetUserLayout hook. Parse the layout string (e.g., '3x3') to extract columns and rows. Apply CSS Grid styling dynamically using inline styles or Tailwind classes with dynamic values (grid-cols-[${cols}] grid-rows-[${rows}]). Ensure the grid layout updates immediately when the user changes their preference by leveraging React Query's automatic refetch on query invalidation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "summary": "Ensure card images in the Gallery View resize automatically to fit the selected grid dimensions while maintaining aspect ratio",
+      "acceptanceCriteria": [
+        "Card images scale proportionally to fill grid cells",
+        "Aspect ratio is preserved (no distortion)",
+        "Images fit within grid bounds without overflow"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/screens/BinderViewScreen.tsx",
+          "operation": "modify",
+          "description": "Apply CSS styling to card images within the grid to ensure they scale proportionally and maintain aspect ratio. Use object-fit: contain or object-fit: cover with width: 100% and height: 100% to ensure images fill grid cells without distortion. Add overflow: hidden to grid cells to prevent overflow. Test with various grid dimensions to ensure consistent behavior."
+        }
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "summary": "Add a 'Global Layout Options' section in the Admin Portal to manage available grid presets",
+      "acceptanceCriteria": [
+        "Admin Portal includes a 'Global Layout Options' panel or tab",
+        "Panel is accessible after Master Admin Key verification"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/screens/AdminDashboardScreen.tsx",
+          "operation": "modify",
+          "description": "Add a new tab to the AdminDashboardScreen for 'Global Layout Options' (or 'Layout Presets'). Ensure this tab is only accessible after the MasterAdminKeyGate is unlocked. The tab should render the LayoutPresetsPanel component which already exists. Verify the tab navigation and panel rendering work correctly."
+        }
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "summary": "Provide admin functionality to add or remove grid presets (e.g., adding '1x1' for featured cards) in the Global Layout Options section",
+      "acceptanceCriteria": [
+        "Admin can input new grid preset labels (e.g., '1x1', '6x2')",
+        "Admin can delete existing presets",
+        "Backend stores the list of available presets in admin settings",
+        "User Settings dropdown dynamically reflects the current list of presets"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/admin/LayoutPresetsPanel.tsx",
+          "operation": "modify",
+          "description": "Review the existing LayoutPresetsPanel component to ensure it correctly implements add and remove functionality for grid presets. Verify that it calls the backend addLayoutPreset and removeLayoutPreset methods. Ensure the panel fetches the current list of presets using getLayoutPresets and displays them with delete buttons. Add validation for preset format (e.g., 'NxM' pattern). Ensure changes invalidate the layout presets query so the User Settings dropdown updates immediately."
+        },
+        {
+          "path": "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+          "operation": "modify",
+          "description": "Update the 'Binder View' dropdown to dynamically fetch available layout presets from the backend using the getLayoutPresets method instead of hardcoding the options. Ensure the dropdown updates when presets are added or removed in the admin panel by leveraging React Query's automatic refetch."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Enhance error handling in useGetBinders query with structured error logging. Log query lifecycle events: initiated, pending, success, error. Capture and log specific error types (network failures, timeout, backend errors). Ensure error messages are exposed to consuming components for display to users."
+          "description": "Add new React Query hooks for managing layout presets: useGetLayoutPresets (calls getLayoutPresets), useAddLayoutPreset (calls addLayoutPreset), and useRemoveLayoutPreset (calls removeLayoutPreset). Follow the existing pattern for query/mutation hooks with proper error handling and query invalidation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "summary": "Add a 'Default Layout' setting in the Global Layout Options that determines the initial grid layout for new users",
+      "acceptanceCriteria": [
+        "Admin Portal includes a 'Default Layout' dropdown showing all available presets",
+        "Selected default is saved to backend admin settings",
+        "New user profiles are created with the default layout preference",
+        "Existing users retain their custom preferences"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/admin/LayoutPresetsPanel.tsx",
+          "operation": "modify",
+          "description": "Add a 'Default Layout' section to the LayoutPresetsPanel component. Include a dropdown that fetches available layout presets using getLayoutPresets and displays the current default layout using getDefaultLayout. When the admin selects a new default layout, call the backend setDefaultLayout method to persist the change. Display success/error feedback after the operation completes. Note: The backend handles applying the default layout to new users automatically; no frontend changes are needed for that logic."
         },
         {
-          "path": "frontend/src/components/system/GlobalLoadingGate.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add enhanced error state rendering that displays specific error messages rather than generic text. Include component stack information in error logs. Add a detailed retry mechanism that logs retry attempts. Ensure loading states correctly reflect the status of all dependent queries (actor, profile, binders)."
-        },
-        {
-          "path": "frontend/src/hooks/useLoadingDiagnostics.ts",
-          "operation": "modify",
-          "description": "Lower the diagnostic threshold or add more granular logging to capture loading bottlenecks earlier. Log the status of actor initialization, profile fetching, and binders query separately with timestamps. Add warnings when any step exceeds expected duration. Ensure diagnostics help identify which specific step is blocking the Binder View screen from loading."
+          "description": "Add new React Query hooks for managing the default layout: useGetDefaultLayout (calls getDefaultLayout) and useSetDefaultLayout (calls setDefaultLayout). Follow the existing pattern for query/mutation hooks with proper error handling and query invalidation."
         }
       ]
     }
