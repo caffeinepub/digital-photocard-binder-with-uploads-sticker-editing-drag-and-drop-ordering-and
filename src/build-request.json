@@ -1,72 +1,86 @@
 {
   "kind": "build_request",
-  "title": "Add GoodNotes-ready PDF export and sharing for binder pages",
-  "priority": "normal",
+  "title": "Fix binder grid layout not responding to custom selection",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a binder PDF export flow that generates a GoodNotes-friendly PDF of the currently viewed binder page (the 12-card grid) with the same visual overlays (edited image if present, rarity badge, condition sticker, and legendary glint) and without app UI chrome (no buttons/headers), suitable for import into GoodNotes.",
+      "text": "Fix the BinderViewScreen component to properly apply the user's selected grid layout (2x2, 3x3, 4x3, 5x4) instead of always displaying 3x3",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Optimise it for the ability to share and import as pdf suitable for goodnotes"
+          "no it's not working. Only showing 3 x 3 and when I choose different grids it's not changing"
         ]
       },
       "acceptanceCriteria": [
-        "From the binder view screen, the user can export the current page as a PDF file.",
-        "The exported PDF page contains the 12-card layout exactly as shown (including overlays and any locally edited card images from the edited image cache).",
-        "The exported PDF does not include navigation/buttons/controls (no app header/footer/back/add/settings UI).",
-        "The exported PDF renders reliably (no missing images; overlays are present; no transparent/black boxes)."
+        "When a user selects a different grid layout from settings, the binder view immediately reflects the new grid dimensions",
+        "The grid layout persists correctly across page navigations and browser refreshes",
+        "All grid options (2x2, 3x3, 4x3, 5x4) render with correct column and row counts"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Provide export settings optimized for GoodNotes, including selectable page size (at minimum A4 Portrait and US Letter Portrait) and a high-quality output mode appropriate for handwriting/annotation (crisp text/lines and non-blurry images when zooming in within GoodNotes).",
+      "text": "Verify that useGetUserLayout hook correctly fetches and returns the current user's layout preference",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Optimise it for the ability to share and import as pdf suitable for goodnotes"
+          "when I choose different grids it's not changing"
         ]
       },
       "acceptanceCriteria": [
-        "The user can choose between A4 Portrait and US Letter Portrait before exporting.",
-        "Exported PDFs are high-resolution enough to remain clear when zoomed in within GoodNotes (no obviously pixelated layout at typical GoodNotes zoom levels).",
-        "The exported layout preserves card aspect ratios and spacing and is centered on the page with consistent margins."
+        "The useGetUserLayout hook successfully retrieves the user's saved layout from backend",
+        "Layout changes made in ProfileSettingsDialog are immediately reflected in the hook's return value",
+        "Hook properly handles loading and error states"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Add a \"Share\" option for the generated PDF that uses the browser’s native share mechanism when available (and falls back to downloading the PDF when sharing is not supported), so the PDF can be sent directly to GoodNotes (or saved to Files for later import).",
+      "text": "Ensure the dynamic CSS Grid implementation in BinderViewScreen correctly maps layout preset strings to grid-template-columns and grid-template-rows values",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
-        ],
-        "quotes": [
-          "Optimise it for the ability to share and import as pdf suitable for goodnotes"
         ]
       },
       "acceptanceCriteria": [
-        "If the browser supports file sharing, the user can trigger a native share sheet with the generated PDF attached.",
-        "If native sharing is unavailable, the user can still download the generated PDF file.",
-        "The PDF filename is deterministic and user-friendly (includes binder name and page number)."
+        "Layout preset '2x2' correctly applies 2 columns and 2 rows",
+        "Layout preset '3x3' correctly applies 3 columns and 3 rows",
+        "Layout preset '4x3' correctly applies 4 columns and 3 rows",
+        "Layout preset '5x4' correctly applies 5 columns and 4 rows",
+        "Cards are positioned correctly within the grid for each layout"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Verify that useUpdateUserLayout mutation successfully saves the selected layout to the backend and invalidates relevant queries",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When a user selects a new layout in ProfileSettingsDialog, the mutation successfully updates the backend",
+        "After successful update, the useGetUserLayout query is invalidated and refetches",
+        "Error states from the mutation are properly handled and displayed to the user"
       ]
     }
   ],
   "constraints": [
-    "Do not modify files in frontend/immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui).",
-    "Keep all backend logic in the single Motoko actor (backend/main.mo); do not introduce additional backend services."
+    "Do not modify the backend schema or main.mo layout management logic",
+    "Maintain the existing layout preset options (2x2, 3x3, 4x3, 5x4)",
+    "Preserve the ProfileSettingsDialog layout selection UI"
   ],
   "nonGoals": [
-    "Implementing direct GoodNotes integration APIs (GoodNotes does not provide a public import API for web apps).",
-    "Adding real-time collaboration or syncing exported PDFs across devices.",
-    "Backend-side PDF generation (export should be done client-side)."
+    "Adding new grid layout options beyond the existing presets",
+    "Changing the visual styling or theme of the binder view",
+    "Modifying the admin layout preset management functionality"
   ],
   "imageRequirements": {
     "required": [],

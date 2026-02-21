@@ -1,89 +1,76 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "GoodNotes-ready binder page PDF export + share",
+  "title": "Fix binder grid layout not responding to custom selection",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Export the currently viewed binder page as a GoodNotes-friendly PDF that matches the 12-card grid (including overlays and edited images) without app UI chrome.",
+      "summary": "Fix the BinderViewScreen component to properly apply the user's selected grid layout (2x2, 3x3, 4x3, 5x4) instead of always displaying 3x3",
       "acceptanceCriteria": [
-        "From the binder view screen, the user can export the current page as a PDF file.",
-        "The exported PDF page contains the 12-card layout exactly as shown (including overlays and any locally edited card images from the edited image cache).",
-        "The exported PDF does not include navigation/buttons/controls (no app header/footer/back/add/settings UI).",
-        "The exported PDF renders reliably (no missing images; overlays are present; no transparent/black boxes)."
+        "When a user selects a different grid layout from settings, the binder view immediately reflects the new grid dimensions",
+        "The grid layout persists correctly across page navigations and browser refreshes",
+        "All grid options (2x2, 3x3, 4x3, 5x4) render with correct column and row counts"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/binder/BinderPageExportCanvas.tsx",
-          "operation": "create",
-          "description": "Create a dedicated, chrome-free render component for a single binder page export (fixed 12-card grid) that matches BinderViewScreen visuals (edited image if present, rarity badge, condition sticker, legendary glint) but excludes hover controls/drag handles/buttons. Ensure it can accept pre-resolved image sources (data URLs) for reliable capture."
-        },
-        {
-          "path": "frontend/src/features/export/resolveExportImages.ts",
-          "operation": "create",
-          "description": "Add utilities to resolve all images needed for export into capture-safe sources (prefer edited image cache data URL; otherwise convert ExternalBlob bytes to data URL). Also include helpers to preload overlay asset images so capture does not produce missing/black boxes."
-        },
-        {
-          "path": "frontend/src/features/export/binderPagePdf.ts",
-          "operation": "create",
-          "description": "Implement client-side binder page PDF generation that renders BinderPageExportCanvas into an offscreen container and rasterizes it into a PDF page while preserving the 12-card layout and overlays. Keep the exported content free of app layout chrome."
-        },
-        {
           "path": "frontend/src/screens/BinderViewScreen.tsx",
           "operation": "modify",
-          "description": "Add an Export/Share PDF entry point on the binder view screen and wire it to generate a PDF of the currently viewed page using BinderPageExportCanvas + binderPagePdf utilities. Ensure the export uses the same per-card overlay logic as the binder grid and respects locally edited images from editedImageCache."
+          "description": "Fix the grid template CSS generation to properly map layout presets to CSS Grid values. Update the component to use the layout value from useGetUserLayout hook instead of hardcoded 3x3. Ensure the grid-template-columns and grid-template-rows are dynamically set based on the actual layout string (e.g., '2x2' -> 'repeat(2, 1fr)' columns and 'repeat(2, 1fr)' rows). Add proper parsing logic to extract rows and columns from the layout string format."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Provide GoodNotes-optimized export settings including selectable page size (A4/Letter portrait) and a high-quality mode for crisp zooming/annotation.",
+      "summary": "Verify that useGetUserLayout hook correctly fetches and returns the current user's layout preference",
       "acceptanceCriteria": [
-        "The user can choose between A4 Portrait and US Letter Portrait before exporting.",
-        "Exported PDFs are high-resolution enough to remain clear when zoomed in within GoodNotes (no obviously pixelated layout at typical GoodNotes zoom levels).",
-        "The exported layout preserves card aspect ratios and spacing and is centered on the page with consistent margins."
+        "The useGetUserLayout hook successfully retrieves the user's saved layout from backend",
+        "Layout changes made in ProfileSettingsDialog are immediately reflected in the hook's return value",
+        "Hook properly handles loading and error states"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/binder/BinderPdfExportDialog.tsx",
-          "operation": "create",
-          "description": "Create an export settings dialog for binder page PDF export (page size: A4 Portrait / US Letter Portrait; quality: standard/high). Use existing shadcn-ui components (e.g., Dialog/Select/Switch/Button) to present settings and actions; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/features/export/binderPagePdf.ts",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Extend PDF generation to support selectable page size and high-quality rendering: map A4/Letter portrait dimensions, render export content into a centered page with consistent margins, and apply a higher render scale in high-quality mode to keep text/lines/images crisp when zooming in within GoodNotes."
-        },
-        {
-          "path": "frontend/src/screens/BinderViewScreen.tsx",
-          "operation": "modify",
-          "description": "Wire BinderPdfExportDialog into the binder view export flow, passing current binder name, current page index, and current page cards; ensure the dialog choices (A4/Letter, quality) control the generated PDF output."
+          "description": "Review and fix the useGetUserLayout hook implementation to ensure it correctly calls the backend getUserLayout method with the authenticated caller's principal. Verify the query key is unique and properly structured. Ensure the hook is enabled only when the actor is available and the user is authenticated. Add proper error handling for cases where the layout cannot be fetched."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Allow sharing the generated PDF via native browser share when available, with a deterministic filename and a download fallback.",
+      "summary": "Ensure the dynamic CSS Grid implementation in BinderViewScreen correctly maps layout preset strings to grid-template-columns and grid-template-rows values",
       "acceptanceCriteria": [
-        "If the browser supports file sharing, the user can trigger a native share sheet with the generated PDF attached.",
-        "If native sharing is unavailable, the user can still download the generated PDF file.",
-        "The PDF filename is deterministic and user-friendly (includes binder name and page number)."
+        "Layout preset '2x2' correctly applies 2 columns and 2 rows",
+        "Layout preset '3x3' correctly applies 3 columns and 3 rows",
+        "Layout preset '4x3' correctly applies 4 columns and 3 rows",
+        "Layout preset '5x4' correctly applies 5 columns and 4 rows",
+        "Cards are positioned correctly within the grid for each layout"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/features/export/shareOrDownloadPdf.ts",
-          "operation": "create",
-          "description": "Add a helper to share a generated PDF Blob via navigator.share (when file sharing is supported) and otherwise trigger a download fallback. Enforce deterministic, user-friendly filenames that include binder name and 1-based page number."
-        },
-        {
-          "path": "frontend/src/components/binder/BinderPdfExportDialog.tsx",
-          "operation": "modify",
-          "description": "Add actions to generate the PDF and then invoke shareOrDownloadPdf, choosing native share when supported and download otherwise. Surface any errors in a user-visible way while keeping the filename deterministic."
-        },
-        {
           "path": "frontend/src/screens/BinderViewScreen.tsx",
           "operation": "modify",
-          "description": "Update binder view export wiring so the primary user action results in either a native share sheet (when supported) or a download, using the deterministic binder-name + page-number filename convention."
+          "description": "Implement a helper function that parses layout strings (format 'COLSxROWS') and returns an object with columns and rows values. Apply these values to the grid container's inline styles using grid-template-columns: repeat(cols, 1fr) and grid-template-rows: repeat(rows, 1fr). Ensure the grid gap and card sizing adapt correctly to different layouts. Test all four layout presets to verify correct rendering."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Verify that useUpdateUserLayout mutation successfully saves the selected layout to the backend and invalidates relevant queries",
+      "acceptanceCriteria": [
+        "When a user selects a new layout in ProfileSettingsDialog, the mutation successfully updates the backend",
+        "After successful update, the useGetUserLayout query is invalidated and refetches",
+        "Error states from the mutation are properly handled and displayed to the user"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Review and fix the useUpdateUserLayout mutation hook to ensure it correctly calls the backend updateUserLayout method with the new layout value. Add proper onSuccess callback that invalidates the 'userLayout' query key to trigger a refetch. Ensure the mutation includes proper error handling and returns meaningful error messages to the UI."
+        },
+        {
+          "path": "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+          "operation": "modify",
+          "description": "Verify that the layout selection dropdown correctly passes the selected layout value to the useUpdateUserLayout mutation. Ensure the mutation's loading and error states are properly displayed to the user. Add visual feedback (success toast or indication) when the layout is successfully updated. Confirm that the dialog shows the current layout as selected when opened."
         }
       ]
     }

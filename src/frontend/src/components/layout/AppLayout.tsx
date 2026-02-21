@@ -2,20 +2,36 @@ import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from '../../hooks/useQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { BookHeart, LogOut, Heart } from 'lucide-react';
-import { ReactNode } from 'react';
+import { BookHeart, LogOut, Heart, Shield, User, X } from 'lucide-react';
+import { ReactNode, useState } from 'react';
 import AccentColorSelector from './AccentColorSelector';
+import TermsAndConditionsDialog from '../terms/TermsAndConditionsDialog';
+import ProfileSettingsDialog from '../../features/auth/ProfileSettingsDialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BUILD_INFO } from '../../config/buildInfo';
 
 interface AppLayoutProps {
   children: ReactNode;
   onNavigateHome: () => void;
+  onNavigateAdmin?: () => void;
+  isSuperuser?: boolean;
+  globalAlert?: string | null;
+  onDismissAlert?: () => void;
 }
 
-export default function AppLayout({ children, onNavigateHome }: AppLayoutProps) {
+export default function AppLayout({ 
+  children, 
+  onNavigateHome, 
+  onNavigateAdmin, 
+  isSuperuser,
+  globalAlert,
+  onDismissAlert 
+}: AppLayoutProps) {
   const { clear } = useInternetIdentity();
   const { data: userProfile } = useGetCallerUserProfile();
   const queryClient = useQueryClient();
+  const [showTerms, setShowTerms] = useState(false);
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
 
   const handleLogout = async () => {
     await clear();
@@ -43,10 +59,29 @@ export default function AppLayout({ children, onNavigateHome }: AppLayoutProps) 
 
             <div className="flex items-center gap-3">
               <AccentColorSelector />
+              {isSuperuser && onNavigateAdmin && (
+                <Button
+                  onClick={onNavigateAdmin}
+                  variant="outline"
+                  size="sm"
+                  className="rounded-lg border border-binder-accent/50 hover:border-binder-accent hover:bg-binder-accent/10 bg-transparent text-binder-accent"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              )}
               {userProfile && (
-                <span className="text-sm text-binder-text-muted hidden sm:inline">
-                  {userProfile.displayName || userProfile.name}
-                </span>
+                <Button
+                  onClick={() => setShowProfileSettings(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-lg text-binder-text-muted hover:text-binder-text hover:bg-binder-surface"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">
+                    {userProfile.displayName || userProfile.name}
+                  </span>
+                </Button>
               )}
               <Button
                 onClick={handleLogout}
@@ -61,6 +96,22 @@ export default function AppLayout({ children, onNavigateHome }: AppLayoutProps) 
           </div>
         </div>
       </header>
+
+      {globalAlert && (
+        <div className="container mx-auto px-4 pt-4">
+          <Alert variant="destructive" className="relative">
+            <AlertDescription className="pr-8">{globalAlert}</AlertDescription>
+            {onDismissAlert && (
+              <button
+                onClick={onDismissAlert}
+                className="absolute right-2 top-2 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </Alert>
+        </div>
+      )}
 
       <main className="container mx-auto px-4 py-8">
         {children}
@@ -80,9 +131,18 @@ export default function AppLayout({ children, onNavigateHome }: AppLayoutProps) 
             </a>
           </p>
           <p className="text-xs mt-2">© {new Date().getFullYear()} Photocard Binder</p>
+          <button
+            onClick={() => setShowTerms(true)}
+            className="text-xs mt-1 text-binder-accent hover:underline"
+          >
+            Terms & Conditions
+          </button>
           <p className="text-xs mt-1 opacity-50">Build: {BUILD_INFO.deploymentId}</p>
         </div>
       </footer>
+
+      <TermsAndConditionsDialog open={showTerms} onOpenChange={setShowTerms} />
+      <ProfileSettingsDialog open={showProfileSettings} onOpenChange={setShowProfileSettings} />
     </div>
   );
 }

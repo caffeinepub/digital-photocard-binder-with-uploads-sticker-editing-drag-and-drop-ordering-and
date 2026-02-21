@@ -7,12 +7,18 @@ import { Sparkles } from 'lucide-react';
 
 export default function ProfileSetupModal() {
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const { mutate: saveProfile, isPending } = useSaveCallerUserProfile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim()) {
-      saveProfile({ name: name.trim(), displayName: name.trim(), avatarUrl: undefined });
+      saveProfile({
+        name: name.trim(),
+        displayName: name.trim(),
+        email: email.trim() || undefined,
+        avatarUrl: undefined,
+      });
     }
   };
 
@@ -45,6 +51,20 @@ export default function ProfileSetupModal() {
               className="h-12 rounded-xl border-2 border-sage/30 focus:border-coral"
               autoFocus
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-charcoal font-medium">
+              Email (optional)
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="h-12 rounded-xl border-2 border-sage/30 focus:border-coral"
             />
           </div>
 

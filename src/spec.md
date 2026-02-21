@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Enable exporting the currently viewed binder page as a GoodNotes-friendly PDF and sharing/downloading it from the binder view.
+**Goal:** Fix the binder grid layout selection so that choosing different grid options (2x2, 3x3, 4x3, 5x4) properly updates the display instead of always showing 3x3.
 
 **Planned changes:**
-- Add a binder page PDF export flow that captures the 12-card grid exactly as displayed (including edited card images from the local edited image cache, rarity badge, condition sticker, and legendary glint) while excluding all app UI chrome.
-- Add export settings optimized for GoodNotes, including selectable page size (A4 Portrait and US Letter Portrait) and a high-quality output mode with crisp rendering and consistent margins/centering.
-- Add a Share option for the generated PDF using the browser’s native share sheet when supported, with a fallback to downloading the PDF, using a deterministic, user-friendly filename (binder name + page number).
+- Fix BinderViewScreen component to correctly apply the selected grid layout from user settings
+- Verify useGetUserLayout hook properly fetches and returns the current layout preference
+- Ensure CSS Grid implementation correctly maps layout presets to the appropriate column and row configurations
+- Verify useUpdateUserLayout mutation successfully saves layout changes and invalidates queries
 
-**User-visible outcome:** From the binder view, the user can export the current page to a high-quality PDF suitable for importing into GoodNotes, and then share it via the native share sheet (or download it if sharing isn’t available).
+**User-visible outcome:** Users can select any grid layout option (2x2, 3x3, 4x3, 5x4) in their profile settings and see the binder view immediately update to display cards in the chosen grid configuration. The selected layout persists across page navigations and browser refreshes.

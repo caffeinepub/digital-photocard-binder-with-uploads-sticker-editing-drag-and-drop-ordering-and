@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useGetBinders, useReorderCards } from '../hooks/useQueries';
+import { useGetBinders, useReorderCards, useGetUserLayout, useGetDefaultLayout } from '../hooks/useQueries';
 import { useBinderPagination } from '../hooks/useBinderPagination';
 import { getEditedImage } from '../features/cards/editedImageCache';
 import {
@@ -32,6 +32,8 @@ export default function BinderViewScreen({
   onSettings,
 }: BinderViewScreenProps) {
   const { data: binders = [] } = useGetBinders();
+  const { data: userLayout, isLoading: userLayoutLoading } = useGetUserLayout();
+  const { data: defaultLayout, isLoading: defaultLayoutLoading } = useGetDefaultLayout();
   const { mutate: reorderCards } = useReorderCards();
   const binder = binders.find((b) => b.id === binderId);
 
@@ -39,6 +41,14 @@ export default function BinderViewScreen({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [showExportDialog, setShowExportDialog] = useState(false);
+
+  // Parse grid layout (e.g., "3x3" -> { cols: 3, rows: 3 })
+  // Use userLayout if available, otherwise fall back to defaultLayout
+  const layout = userLayout || defaultLayout || '3x3';
+  const [colsStr, rowsStr] = layout.split('x');
+  const cols = parseInt(colsStr, 10) || 3;
+  const rows = parseInt(rowsStr, 10) || 3;
+  const cardsPerPage = cols * rows;
 
   const {
     currentPage,
@@ -48,7 +58,7 @@ export default function BinderViewScreen({
     prevPage,
     hasNext,
     hasPrev,
-  } = useBinderPagination(cards);
+  } = useBinderPagination(cards, cardsPerPage);
 
   useEffect(() => {
     if (binder) {
@@ -73,7 +83,7 @@ export default function BinderViewScreen({
       return;
     }
 
-    const pageOffset = currentPage * 12;
+    const pageOffset = currentPage * cardsPerPage;
     const globalDraggedIndex = pageOffset + draggedIndex;
     const globalDropIndex = pageOffset + dropIndex;
 
@@ -102,6 +112,9 @@ export default function BinderViewScreen({
     );
   }
 
+  // Show loading state while layout is being fetched
+  const isLayoutLoading = userLayoutLoading || defaultLayoutLoading;
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
@@ -119,7 +132,7 @@ export default function BinderViewScreen({
               {binder.name}
             </h2>
             <p className="text-sm text-binder-text-muted mt-1">
-              {cards.length} {cards.length === 1 ? 'card' : 'cards'}
+              {cards.length} {cards.length === 1 ? 'card' : 'cards'} • {layout} grid
             </p>
           </div>
         </div>
@@ -174,144 +187,152 @@ export default function BinderViewScreen({
                 </p>
                 <Button
                   onClick={onAddCard}
-                  className="rounded-lg bg-binder-accent hover:bg-binder-accent-hover text-white"
+                  className="rounded-xl bg-binder-accent hover:bg-binder-accent-hover text-white"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Add Your First Card
                 </Button>
               </div>
+            ) : isLayoutLoading ? (
+              <div className="flex items-center justify-center py-24">
+                <p className="text-binder-text-muted">Loading layout...</p>
+              </div>
             ) : (
-              <>
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mb-6">
-                  {currentCards.map((card, index) => {
-                    const editedImage = getEditedImage(card.id);
-                    const imageUrl = editedImage || card.image.getDirectURL();
-                    const isDragging = draggedIndex === index;
-                    const isDragOver = dragOverIndex === index;
+              <div
+                className="grid gap-4 p-8"
+                style={{
+                  gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                  gridTemplateRows: `repeat(${rows}, 1fr)`,
+                }}
+              >
+                {Array.from({ length: cardsPerPage }).map((_, index) => {
+                  const card = currentCards[index];
+                  const isDragging = draggedIndex === index;
+                  const isDragOver = dragOverIndex === index;
 
-                    const conditionStickerPath = getConditionStickerPath(card.condition);
-                    const rarityBadgePath = getRarityBadgePath(card.rarity);
-                    const showGlint = shouldShowGlint(card.rarity);
-
+                  if (!card) {
                     return (
                       <div
-                        key={card.id}
-                        draggable
-                        onDragStart={() => handleDragStart(index)}
-                        onDragOver={(e) => handleDragOver(e, index)}
-                        onDrop={(e) => handleDrop(e, index)}
-                        className={`group relative aspect-[2/3] bg-binder-card rounded-xl overflow-hidden border-2 transition-all cursor-move ${
-                          isDragging
-                            ? 'opacity-50 scale-95 border-binder-accent'
-                            : isDragOver
-                            ? 'border-binder-accent scale-105 shadow-binder-lg'
-                            : 'border-binder-border hover:border-binder-accent shadow-binder'
-                        }`}
-                      >
-                        {/* Card image container with overlays */}
-                        <div className="relative w-full h-full">
-                          <img
-                            src={imageUrl}
-                            alt={card.name}
-                            className="w-full h-full object-cover"
-                          />
-
-                          {/* Holographic glint overlay for legendary cards */}
-                          {showGlint && (
-                            <img
-                              src={getGlintOverlayPath()}
-                              alt="Holographic glint"
-                              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                              style={{ opacity: 0.5 }}
-                            />
-                          )}
-
-                          {/* Condition sticker - top right, -5 degree rotation */}
-                          {conditionStickerPath && (
-                            <img
-                              src={conditionStickerPath}
-                              alt="Condition"
-                              className="absolute top-1 right-1 w-12 h-12 object-contain pointer-events-none"
-                              style={{ transform: 'rotate(-5deg)' }}
-                            />
-                          )}
-
-                          {/* Rarity badge - bottom left */}
-                          {rarityBadgePath && (
-                            <img
-                              src={rarityBadgePath}
-                              alt="Rarity"
-                              className="absolute bottom-1 left-1 w-8 h-8 object-contain pointer-events-none"
-                            />
-                          )}
-                        </div>
-
-                        {/* Hover gradient and controls */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="absolute top-2 left-2">
-                            <GripVertical className="w-5 h-5 text-white drop-shadow-lg" />
-                          </div>
-                          <button
-                            onClick={() => onEditCard(card.id)}
-                            className="absolute bottom-2 right-2 p-2 bg-binder-accent hover:bg-binder-accent-hover text-white rounded-lg shadow-lg transition-colors"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                        {/* Quantity badge */}
-                        {card.quantity > 1 && (
-                          <div className="absolute top-2 right-2 bg-binder-accent text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                            ×{card.quantity}
-                          </div>
-                        )}
-                      </div>
+                        key={`empty-${index}`}
+                        className="aspect-[2.5/3.5] bg-binder-page/30 rounded-lg border-2 border-dashed border-binder-border/30"
+                      />
                     );
-                  })}
-                </div>
+                  }
 
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-4 pt-4 border-t border-binder-border">
-                    <Button
-                      onClick={prevPage}
-                      disabled={!hasPrev}
-                      variant="outline"
-                      size="sm"
-                      className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text disabled:opacity-30"
+                  const editedImageUrl = getEditedImage(card.id);
+                  const imageUrl = editedImageUrl || card.image.getDirectURL();
+                  const conditionPath = getConditionStickerPath(card.condition);
+                  const rarityPath = getRarityBadgePath(card.rarity);
+
+                  return (
+                    <div
+                      key={card.id}
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      className={`relative aspect-[2.5/3.5] bg-white rounded-lg shadow-card overflow-hidden cursor-move group transition-all ${
+                        isDragging ? 'opacity-50 scale-95' : ''
+                      } ${isDragOver ? 'ring-2 ring-binder-accent' : ''}`}
                     >
-                      <ChevronLeft className="w-4 h-4 mr-1" />
-                      Previous
-                    </Button>
-                    <span className="text-sm text-binder-text-muted font-medium">
-                      Page {currentPage + 1} of {totalPages}
-                    </span>
-                    <Button
-                      onClick={nextPage}
-                      disabled={!hasNext}
-                      variant="outline"
-                      size="sm"
-                      className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text disabled:opacity-30"
-                    >
-                      Next
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
-                )}
-              </>
+                      <img
+                        src={imageUrl}
+                        alt={card.name}
+                        className="w-full h-full object-contain"
+                        draggable={false}
+                      />
+
+                      {conditionPath && (
+                        <img
+                          src={conditionPath}
+                          alt={`${card.condition} condition`}
+                          className="absolute top-2 left-2 w-12 h-12 pointer-events-none"
+                          draggable={false}
+                        />
+                      )}
+
+                      {rarityPath && (
+                        <img
+                          src={rarityPath}
+                          alt={`${card.rarity} rarity`}
+                          className="absolute top-2 right-2 w-8 h-8 pointer-events-none"
+                          draggable={false}
+                        />
+                      )}
+
+                      {shouldShowGlint(card.rarity) && (
+                        <img
+                          src={getGlintOverlayPath()}
+                          alt="Legendary glint"
+                          className="absolute inset-0 w-full h-full pointer-events-none opacity-60 mix-blend-screen"
+                          draggable={false}
+                        />
+                      )}
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-white">
+                            <GripVertical className="w-4 h-4" />
+                            <span className="text-sm font-medium truncate">{card.name}</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="rounded-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditCard(card.id);
+                            }}
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </PageSwipeContainer>
         </BinderFrame>
+
+        {cards.length > 0 && (
+          <div className="flex items-center justify-center gap-4 mt-6">
+            <Button
+              onClick={prevPage}
+              disabled={!hasPrev}
+              variant="outline"
+              size="icon"
+              className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text disabled:opacity-30"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <span className="text-sm text-binder-text-muted font-medium">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <Button
+              onClick={nextPage}
+              disabled={!hasNext}
+              variant="outline"
+              size="icon"
+              className="rounded-lg border border-binder-border hover:border-binder-accent bg-transparent text-binder-text disabled:opacity-30"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* PDF Export Dialog */}
-      <BinderPdfExportDialog
-        open={showExportDialog}
-        onOpenChange={setShowExportDialog}
-        binderName={binder.name}
-        pageNumber={currentPage + 1}
-        cards={currentCards}
-        pageBackground={binder.theme.pageBackground}
-      />
+      {showExportDialog && (
+        <BinderPdfExportDialog
+          open={showExportDialog}
+          onOpenChange={setShowExportDialog}
+          binderName={binder.name}
+          pageNumber={currentPage + 1}
+          cards={currentCards}
+          pageBackground={binder.theme.pageBackground}
+        />
+      )}
     </div>
   );
 }

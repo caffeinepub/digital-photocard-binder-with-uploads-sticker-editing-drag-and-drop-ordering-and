@@ -51,7 +51,25 @@ export const BinderTheme = IDL.Record({
   'cardFrameStyle' : IDL.Text,
   'textColor' : IDL.Text,
 });
+export const AdminContentSettings = IDL.Record({
+  'masterAdminKey' : IDL.Opt(IDL.Text),
+  'background' : IDL.Opt(ExternalBlob),
+  'logo' : IDL.Opt(ExternalBlob),
+  'termsAndConditions' : IDL.Text,
+});
 export const Time = IDL.Int;
+export const SubscriptionStatus = IDL.Variant({
+  'pro' : IDL.Null,
+  'free' : IDL.Null,
+});
+export const UserAnalytics = IDL.Record({
+  'binderCount' : IDL.Nat,
+  'principal' : IDL.Principal,
+  'joinDate' : Time,
+  'email' : IDL.Opt(IDL.Text),
+  'subscriptionStatus' : SubscriptionStatus,
+  'cardCount' : IDL.Nat,
+});
 export const Photocard = IDL.Record({
   'id' : IDL.Text,
   'created' : Time,
@@ -72,11 +90,8 @@ export const BinderView = IDL.Record({
 export const UserProfile = IDL.Record({
   'displayName' : IDL.Opt(IDL.Text),
   'name' : IDL.Text,
+  'email' : IDL.Opt(IDL.Text),
   'avatarUrl' : IDL.Opt(IDL.Text),
-});
-export const SubscriptionStatus = IDL.Variant({
-  'pro' : IDL.Null,
-  'free' : IDL.Null,
 });
 
 export const idlService = IDL.Service({
@@ -107,6 +122,7 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addLayoutPreset' : IDL.Func([IDL.Text], [], []),
   'addPhotocard' : IDL.Func(
       [
         IDL.Text,
@@ -124,19 +140,39 @@ export const idlService = IDL.Service({
   'createBinder' : IDL.Func([IDL.Text, BinderTheme], [IDL.Text], []),
   'deleteBinder' : IDL.Func([IDL.Text], [], []),
   'deletePhotocard' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'getAdminContentSettings' : IDL.Func([], [AdminContentSettings], ['query']),
+  'getAllUsers' : IDL.Func([], [IDL.Vec(UserAnalytics)], ['query']),
   'getBinders' : IDL.Func([], [IDL.Vec(BinderView)], ['query']),
+  'getBindersByUser' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Vec(BinderView)],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getDefaultLayout' : IDL.Func([], [IDL.Text], ['query']),
+  'getFilteredUsers' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(UserAnalytics)],
+      ['query'],
+    ),
+  'getLayoutPresets' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+  'getMasterAdminKey' : IDL.Func([], [IDL.Opt(IDL.Text)], []),
   'getSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),
+  'getUserLayout' : IDL.Func([IDL.Principal], [IDL.Text], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'removeLayoutPreset' : IDL.Func([IDL.Text], [], []),
   'reorderCards' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setDefaultLayout' : IDL.Func([IDL.Text], [], []),
+  'updateAdminContentSettings' : IDL.Func([AdminContentSettings], [], []),
   'updateBinderTheme' : IDL.Func([IDL.Text, BinderTheme], [], []),
+  'updateMasterAdminKey' : IDL.Func([IDL.Text], [], []),
   'updatePhotocard' : IDL.Func(
       [
         IDL.Text,
@@ -156,6 +192,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'updateUserLayout' : IDL.Func([IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
@@ -204,7 +241,25 @@ export const idlFactory = ({ IDL }) => {
     'cardFrameStyle' : IDL.Text,
     'textColor' : IDL.Text,
   });
+  const AdminContentSettings = IDL.Record({
+    'masterAdminKey' : IDL.Opt(IDL.Text),
+    'background' : IDL.Opt(ExternalBlob),
+    'logo' : IDL.Opt(ExternalBlob),
+    'termsAndConditions' : IDL.Text,
+  });
   const Time = IDL.Int;
+  const SubscriptionStatus = IDL.Variant({
+    'pro' : IDL.Null,
+    'free' : IDL.Null,
+  });
+  const UserAnalytics = IDL.Record({
+    'binderCount' : IDL.Nat,
+    'principal' : IDL.Principal,
+    'joinDate' : Time,
+    'email' : IDL.Opt(IDL.Text),
+    'subscriptionStatus' : SubscriptionStatus,
+    'cardCount' : IDL.Nat,
+  });
   const Photocard = IDL.Record({
     'id' : IDL.Text,
     'created' : Time,
@@ -225,11 +280,8 @@ export const idlFactory = ({ IDL }) => {
   const UserProfile = IDL.Record({
     'displayName' : IDL.Opt(IDL.Text),
     'name' : IDL.Text,
+    'email' : IDL.Opt(IDL.Text),
     'avatarUrl' : IDL.Opt(IDL.Text),
-  });
-  const SubscriptionStatus = IDL.Variant({
-    'pro' : IDL.Null,
-    'free' : IDL.Null,
   });
   
   return IDL.Service({
@@ -260,6 +312,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addLayoutPreset' : IDL.Func([IDL.Text], [], []),
     'addPhotocard' : IDL.Func(
         [
           IDL.Text,
@@ -277,19 +330,39 @@ export const idlFactory = ({ IDL }) => {
     'createBinder' : IDL.Func([IDL.Text, BinderTheme], [IDL.Text], []),
     'deleteBinder' : IDL.Func([IDL.Text], [], []),
     'deletePhotocard' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'getAdminContentSettings' : IDL.Func([], [AdminContentSettings], ['query']),
+    'getAllUsers' : IDL.Func([], [IDL.Vec(UserAnalytics)], ['query']),
     'getBinders' : IDL.Func([], [IDL.Vec(BinderView)], ['query']),
+    'getBindersByUser' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(BinderView)],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getDefaultLayout' : IDL.Func([], [IDL.Text], ['query']),
+    'getFilteredUsers' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(UserAnalytics)],
+        ['query'],
+      ),
+    'getLayoutPresets' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+    'getMasterAdminKey' : IDL.Func([], [IDL.Opt(IDL.Text)], []),
     'getSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),
+    'getUserLayout' : IDL.Func([IDL.Principal], [IDL.Text], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'removeLayoutPreset' : IDL.Func([IDL.Text], [], []),
     'reorderCards' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setDefaultLayout' : IDL.Func([IDL.Text], [], []),
+    'updateAdminContentSettings' : IDL.Func([AdminContentSettings], [], []),
     'updateBinderTheme' : IDL.Func([IDL.Text, BinderTheme], [], []),
+    'updateMasterAdminKey' : IDL.Func([IDL.Text], [], []),
     'updatePhotocard' : IDL.Func(
         [
           IDL.Text,
@@ -309,6 +382,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'updateUserLayout' : IDL.Func([IDL.Text], [], []),
   });
 };
 

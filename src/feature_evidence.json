@@ -2,12 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-binder-pdf-export-flow-that-generates-a-goodnotes-friendly-pdf-of-the-currently-viewed-binder-page-the-12-card-grid-with-the-same-visual-overlays-edited-image-if-present-rarity-badge-condition-sticker-and-legendary-glint-and-without-app-ui-chrome-no-buttons-headers-suitable-for-import-into-goodnotes",
-      "featureTitle": "Add a binder PDF export flow that generates a GoodNotes-friendly PDF of the currently viewed binder page (the 12-card grid) with the same visual overlays (edited image if present, rarity badge, condition sticker, and legendary glint) and without app UI chrome (no buttons/headers), suitable for import into GoodNotes.",
+      "featureId": "feature-fix-the-binderviewscreen-component-to-properly-apply-the-user-s-selected-grid-layout-2x2-3x3-4x3-5x4-instead-of-always-displaying-3x3",
+      "featureTitle": "Fix the BinderViewScreen component to properly apply the user's selected grid layout (2x2, 3x3, 4x3, 5x4) instead of always displaying 3x3",
       "files": [
-        "frontend/src/components/binder/BinderPageExportCanvas.tsx",
-        "frontend/src/features/export/binderPagePdf.ts",
-        "frontend/src/features/export/resolveExportImages.ts",
         "frontend/src/screens/BinderViewScreen.tsx"
       ],
       "components": [
@@ -25,12 +22,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-provide-export-settings-optimized-for-goodnotes-including-selectable-page-size-at-minimum-a4-portrait-and-us-letter-portrait-and-a-high-quality-output-mode-appropriate-for-handwriting-annotation-crisp-text-lines-and-non-blurry-images-when-zooming-in-within-goodnotes",
-      "featureTitle": "Provide export settings optimized for GoodNotes, including selectable page size (at minimum A4 Portrait and US Letter Portrait) and a high-quality output mode appropriate for handwriting/annotation (crisp text/lines and non-blurry images when zooming in within GoodNotes).",
+      "featureId": "feature-verify-that-usegetuserlayout-hook-correctly-fetches-and-returns-the-current-user-s-layout-preference",
+      "featureTitle": "Verify that useGetUserLayout hook correctly fetches and returns the current user's layout preference",
       "files": [
-        "frontend/src/components/binder/BinderPdfExportDialog.tsx",
-        "frontend/src/features/export/binderPagePdf.ts",
-        "frontend/src/screens/BinderViewScreen.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -47,11 +42,9 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-share-option-for-the-generated-pdf-that-uses-the-browser-s-native-share-mechanism-when-available-and-falls-back-to-downloading-the-pdf-when-sharing-is-not-supported-so-the-pdf-can-be-sent-directly-to-goodnotes-or-saved-to-files-for-later-import",
-      "featureTitle": "Add a \"Share\" option for the generated PDF that uses the browser’s native share mechanism when available (and falls back to downloading the PDF when sharing is not supported), so the PDF can be sent directly to GoodNotes (or saved to Files for later import).",
+      "featureId": "feature-ensure-the-dynamic-css-grid-implementation-in-binderviewscreen-correctly-maps-layout-preset-strings-to-grid-template-columns-and-grid-template-rows-values",
+      "featureTitle": "Ensure the dynamic CSS Grid implementation in BinderViewScreen correctly maps layout preset strings to grid-template-columns and grid-template-rows values",
       "files": [
-        "frontend/src/components/binder/BinderPdfExportDialog.tsx",
-        "frontend/src/features/export/shareOrDownloadPdf.ts",
         "frontend/src/screens/BinderViewScreen.tsx"
       ],
       "components": [
@@ -65,6 +58,27 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-verify-that-useupdateuserlayout-mutation-successfully-saves-the-selected-layout-to-the-backend-and-invalidates-relevant-queries",
+      "featureTitle": "Verify that useUpdateUserLayout mutation successfully saves the selected layout to the backend and invalidates relevant queries",
+      "files": [
+        "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { BinderView, BinderTheme, UserProfile, CardPosition, SubscriptionStatus } from '../backend';
+import type { BinderView, BinderTheme, UserProfile, CardPosition, SubscriptionStatus, AdminContentSettings, UserAnalytics } from '../backend';
 import { ExternalBlob, CardRarity, CardCondition } from '../backend';
 import { withTimeout } from '../utils/promiseTimeout';
+import { Principal } from '@dfinity/principal';
+import { useInternetIdentity } from './useInternetIdentity';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -41,6 +43,25 @@ export function useSaveCallerUserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     },
+  });
+}
+
+export function useIsCallerAdmin() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['isCallerAdmin'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return withTimeout(
+        actor.isCallerAdmin(),
+        30000,
+        'Admin check timed out'
+      );
+    },
+    enabled: !!actor && !isFetching,
+    retry: 1,
+    retryDelay: 1000,
   });
 }
 
@@ -188,6 +209,244 @@ export function useReorderCards() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
+
+// Admin: Content Settings
+export function useGetAdminContentSettings() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<AdminContentSettings>({
+    queryKey: ['adminContentSettings'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return withTimeout(
+        actor.getAdminContentSettings(),
+        30000,
+        'Content settings fetch timed out'
+      );
+    },
+    enabled: !!actor && !isFetching,
+    retry: 1,
+    retryDelay: 1000,
+    refetchInterval: 60000, // Refetch every 60 seconds for automatic updates
+    staleTime: 30000,
+  });
+}
+
+export function useUpdateAdminContentSettings() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (settings: AdminContentSettings) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateAdminContentSettings(settings);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminContentSettings'] });
+    },
+  });
+}
+
+// Admin: Master Admin Key Management
+export function useVerifyMasterAdminKey() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (key: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const storedKey = await actor.getMasterAdminKey();
+      return storedKey === key;
+    },
+  });
+}
+
+export function useUpdateMasterAdminKey() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newKey: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateMasterAdminKey(newKey);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminContentSettings'] });
+    },
+  });
+}
+
+// Admin: User Analytics
+export function useGetAllUsers() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<UserAnalytics[]>({
+    queryKey: ['allUsers'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return withTimeout(
+        actor.getAllUsers(),
+        30000,
+        'User analytics fetch timed out'
+      );
+    },
+    enabled: !!actor && !isFetching,
+    retry: 1,
+    retryDelay: 1000,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+}
+
+export function useGetFilteredUsers() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (filter: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return withTimeout(
+        actor.getFilteredUsers(filter),
+        30000,
+        'User search timed out'
+      );
+    },
+  });
+}
+
+export function useGetBindersByUser() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (userPrincipal: Principal) => {
+      if (!actor) throw new Error('Actor not available');
+      return withTimeout(
+        actor.getBindersByUser(userPrincipal),
+        30000,
+        'User binders fetch timed out'
+      );
+    },
+  });
+}
+
+// Grid Layout Preferences
+export function useGetUserLayout() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<string>({
+    queryKey: ['userLayout'],
+    queryFn: async () => {
+      if (!actor || !identity) throw new Error('Actor or identity not available');
+      const principal = identity.getPrincipal();
+      return withTimeout(
+        actor.getUserLayout(principal),
+        30000,
+        'Layout preference fetch timed out'
+      );
+    },
+    enabled: !!actor && !isFetching && !!identity,
+    retry: 1,
+    retryDelay: 1000,
+  });
+}
+
+export function useGetLayoutPresets() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string[]>({
+    queryKey: ['layoutPresets'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return withTimeout(
+        actor.getLayoutPresets(),
+        30000,
+        'Layout presets fetch timed out'
+      );
+    },
+    enabled: !!actor && !isFetching,
+    retry: 1,
+    retryDelay: 1000,
+  });
+}
+
+export function useGetDefaultLayout() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string>({
+    queryKey: ['defaultLayout'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return withTimeout(
+        actor.getDefaultLayout(),
+        30000,
+        'Default layout fetch timed out'
+      );
+    },
+    enabled: !!actor && !isFetching,
+    retry: 1,
+    retryDelay: 1000,
+  });
+}
+
+export function useUpdateUserLayout() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (layout: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateUserLayout(layout);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userLayout'] });
+      queryClient.invalidateQueries({ queryKey: ['binders'] });
+    },
+  });
+}
+
+// Admin: Layout Preset Management
+export function useAddLayoutPreset() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (layout: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.addLayoutPreset(layout);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['layoutPresets'] });
+    },
+  });
+}
+
+export function useRemoveLayoutPreset() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (layout: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.removeLayoutPreset(layout);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['layoutPresets'] });
+    },
+  });
+}
+
+export function useSetDefaultLayout() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (layout: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.setDefaultLayout(layout);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['defaultLayout'] });
     },
   });
 }

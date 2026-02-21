@@ -10,6 +10,12 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AdminContentSettings {
+  'masterAdminKey' : [] | [string],
+  'background' : [] | [ExternalBlob],
+  'logo' : [] | [ExternalBlob],
+  'termsAndConditions' : string,
+}
 export interface BinderTheme {
   'pageBackground' : string,
   'coverColor' : string,
@@ -53,9 +59,18 @@ export interface Photocard {
 export type SubscriptionStatus = { 'pro' : null } |
   { 'free' : null };
 export type Time = bigint;
+export interface UserAnalytics {
+  'binderCount' : bigint,
+  'principal' : Principal,
+  'joinDate' : Time,
+  'email' : [] | [string],
+  'subscriptionStatus' : SubscriptionStatus,
+  'cardCount' : bigint,
+}
 export interface UserProfile {
   'displayName' : [] | [string],
   'name' : string,
+  'email' : [] | [string],
   'avatarUrl' : [] | [string],
 }
 export type UserRole = { 'admin' : null } |
@@ -89,6 +104,7 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addLayoutPreset' : ActorMethod<[string], undefined>,
   'addPhotocard' : ActorMethod<
     [
       string,
@@ -105,15 +121,27 @@ export interface _SERVICE {
   'createBinder' : ActorMethod<[string, BinderTheme], string>,
   'deleteBinder' : ActorMethod<[string], undefined>,
   'deletePhotocard' : ActorMethod<[string, string], undefined>,
+  'getAdminContentSettings' : ActorMethod<[], AdminContentSettings>,
+  'getAllUsers' : ActorMethod<[], Array<UserAnalytics>>,
   'getBinders' : ActorMethod<[], Array<BinderView>>,
+  'getBindersByUser' : ActorMethod<[Principal], Array<BinderView>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getDefaultLayout' : ActorMethod<[], string>,
+  'getFilteredUsers' : ActorMethod<[string], Array<UserAnalytics>>,
+  'getLayoutPresets' : ActorMethod<[], Array<string>>,
+  'getMasterAdminKey' : ActorMethod<[], [] | [string]>,
   'getSubscriptionStatus' : ActorMethod<[], SubscriptionStatus>,
+  'getUserLayout' : ActorMethod<[Principal], string>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'removeLayoutPreset' : ActorMethod<[string], undefined>,
   'reorderCards' : ActorMethod<[string, Array<string>], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setDefaultLayout' : ActorMethod<[string], undefined>,
+  'updateAdminContentSettings' : ActorMethod<[AdminContentSettings], undefined>,
   'updateBinderTheme' : ActorMethod<[string, BinderTheme], undefined>,
+  'updateMasterAdminKey' : ActorMethod<[string], undefined>,
   'updatePhotocard' : ActorMethod<
     [
       string,
@@ -131,6 +159,7 @@ export interface _SERVICE {
     [Principal, SubscriptionStatus],
     undefined
   >,
+  'updateUserLayout' : ActorMethod<[string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { useGetAdminContentSettings } from '../../hooks/useQueries';
 
 interface BinderFrameProps {
   children: ReactNode;
@@ -10,6 +11,13 @@ interface BinderFrameProps {
 }
 
 export default function BinderFrame({ children, theme }: BinderFrameProps) {
+  const { data: appSettings } = useGetAdminContentSettings();
+
+  // Use custom background if set by admin, otherwise fall back to theme or default
+  const backgroundImage = appSettings?.background
+    ? appSettings.background.getDirectURL()
+    : theme?.backgroundPattern || '/assets/generated/binder-page-light-texture.dim_2048x2048.png';
+
   return (
     <div className="relative">
       {/* Binder spine/edge */}
@@ -23,7 +31,7 @@ export default function BinderFrame({ children, theme }: BinderFrameProps) {
         className="rounded-2xl p-8 min-h-[600px] border-2 border-binder-border shadow-binder-lg relative overflow-hidden"
         style={{
           backgroundColor: theme?.pageBackground || 'oklch(0.96 0.02 58)',
-          backgroundImage: theme?.backgroundPattern ? `url(${theme.backgroundPattern})` : 'url(/assets/generated/binder-page-light-texture.dim_2048x2048.png)',
+          backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundBlendMode: 'overlay',
         }}
