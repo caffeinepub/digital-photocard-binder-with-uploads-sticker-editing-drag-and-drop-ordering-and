@@ -2,9 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-binderviewscreen-component-to-properly-apply-the-user-s-selected-grid-layout-2x2-3x3-4x3-5x4-instead-of-always-displaying-3x3",
-      "featureTitle": "Fix the BinderViewScreen component to properly apply the user's selected grid layout (2x2, 3x3, 4x3, 5x4) instead of always displaying 3x3",
+      "featureId": "feature-debug-and-fix-the-binder-view-screen-to-correctly-display-photocard-grids-instead-of-showing-empty-state-investigate-data-fetching-pagination-logic-and-card-rendering-in-binderviewscreen-tsx-to-identify-why-cards-are-not-displaying",
+      "featureTitle": "Debug and fix the Binder View screen to correctly display photocard grids instead of showing empty state. Investigate data fetching, pagination logic, and card rendering in BinderViewScreen.tsx to identify why cards are not displaying.",
       "files": [
+        "frontend/src/hooks/useBinderPagination.ts",
+        "frontend/src/hooks/useQueries.ts",
         "frontend/src/screens/BinderViewScreen.tsx"
       ],
       "components": [
@@ -14,7 +16,9 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
       ],
       "testIds": [
         "REQ-1"
@@ -22,10 +26,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-verify-that-usegetuserlayout-hook-correctly-fetches-and-returns-the-current-user-s-layout-preference",
-      "featureTitle": "Verify that useGetUserLayout hook correctly fetches and returns the current user's layout preference",
+      "featureId": "feature-fix-master-admin-key-authentication-in-the-admin-portal-ensure-masteradminkeygate-component-correctly-validates-the-stored-master-admin-key-from-backend-and-grants-access-to-admin-features",
+      "featureTitle": "Fix Master Admin Key authentication in the Admin portal. Ensure MasterAdminKeyGate component correctly validates the stored master admin key from backend and grants access to admin features.",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/features/admin/MasterAdminKeyGate.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/screens/AdminDashboardScreen.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -34,7 +40,9 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
       ],
       "testIds": [
         "REQ-2"
@@ -42,9 +50,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-dynamic-css-grid-implementation-in-binderviewscreen-correctly-maps-layout-preset-strings-to-grid-template-columns-and-grid-template-rows-values",
-      "featureTitle": "Ensure the dynamic CSS Grid implementation in BinderViewScreen correctly maps layout preset strings to grid-template-columns and grid-template-rows values",
+      "featureId": "feature-add-error-handling-and-logging-to-identify-root-causes-of-binder-view-failures-include-diagnostics-for-data-loading-query-states-and-render-conditions",
+      "featureTitle": "Add error handling and logging to identify root causes of Binder View failures. Include diagnostics for data loading, query states, and render conditions.",
       "files": [
+        "frontend/src/components/system/GlobalLoadingGate.tsx",
+        "frontend/src/hooks/useLoadingDiagnostics.ts",
+        "frontend/src/hooks/useQueries.ts",
         "frontend/src/screens/BinderViewScreen.tsx"
       ],
       "components": [
@@ -54,31 +65,12 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0"
       ],
       "testIds": [
         "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-verify-that-useupdateuserlayout-mutation-successfully-saves-the-selected-layout-to-the-backend-and-invalidates-relevant-queries",
-      "featureTitle": "Verify that useUpdateUserLayout mutation successfully saves the selected layout to the backend and invalidates relevant queries",
-      "files": [
-        "frontend/src/features/auth/ProfileSettingsDialog.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
       ],
       "confidence": "high"
     }

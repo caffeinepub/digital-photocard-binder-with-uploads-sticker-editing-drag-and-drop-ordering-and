@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the binder grid layout selection so that choosing different grid options (2x2, 3x3, 4x3, 5x4) properly updates the display instead of always showing 3x3.
+**Goal:** Fix Binder View screen displaying empty state instead of photocard grids, and resolve Master Admin Key authentication issues in the Admin portal.
 
 **Planned changes:**
-- Fix BinderViewScreen component to correctly apply the selected grid layout from user settings
-- Verify useGetUserLayout hook properly fetches and returns the current layout preference
-- Ensure CSS Grid implementation correctly maps layout presets to the appropriate column and row configurations
-- Verify useUpdateUserLayout mutation successfully saves layout changes and invalidates queries
+- Debug and fix data fetching, pagination, and card rendering logic in BinderViewScreen.tsx
+- Fix Master Admin Key validation in MasterAdminKeyGate component to correctly authenticate against backend
+- Add error handling and diagnostic logging for Binder View failures
+- Verify backend query endpoints for binder cards and Master Admin Key validation return correct data structures
 
-**User-visible outcome:** Users can select any grid layout option (2x2, 3x3, 4x3, 5x4) in their profile settings and see the binder view immediately update to display cards in the chosen grid configuration. The selected layout persists across page navigations and browser refreshes.
+**User-visible outcome:** Users can view their photocard collections in the Binder View screen with proper grid display, and administrators can successfully authenticate into the Admin portal using their Master Admin Key.

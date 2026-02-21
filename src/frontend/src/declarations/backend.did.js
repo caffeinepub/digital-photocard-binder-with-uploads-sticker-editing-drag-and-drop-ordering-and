@@ -51,6 +51,13 @@ export const BinderTheme = IDL.Record({
   'cardFrameStyle' : IDL.Text,
   'textColor' : IDL.Text,
 });
+export const ShoppingItem = IDL.Record({
+  'productName' : IDL.Text,
+  'currency' : IDL.Text,
+  'quantity' : IDL.Nat,
+  'priceInCents' : IDL.Nat,
+  'productDescription' : IDL.Text,
+});
 export const AdminContentSettings = IDL.Record({
   'masterAdminKey' : IDL.Opt(IDL.Text),
   'background' : IDL.Opt(ExternalBlob),
@@ -92,6 +99,35 @@ export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Opt(IDL.Text),
   'avatarUrl' : IDL.Opt(IDL.Text),
+});
+export const StripeSessionStatus = IDL.Variant({
+  'completed' : IDL.Record({
+    'userPrincipal' : IDL.Opt(IDL.Text),
+    'response' : IDL.Text,
+  }),
+  'failed' : IDL.Record({ 'error' : IDL.Text }),
+});
+export const StripeConfiguration = IDL.Record({
+  'allowedCountries' : IDL.Vec(IDL.Text),
+  'secretKey' : IDL.Text,
+});
+export const http_header = IDL.Record({
+  'value' : IDL.Text,
+  'name' : IDL.Text,
+});
+export const http_request_result = IDL.Record({
+  'status' : IDL.Nat,
+  'body' : IDL.Vec(IDL.Nat8),
+  'headers' : IDL.Vec(http_header),
+});
+export const TransformationInput = IDL.Record({
+  'context' : IDL.Vec(IDL.Nat8),
+  'response' : http_request_result,
+});
+export const TransformationOutput = IDL.Record({
+  'status' : IDL.Nat,
+  'body' : IDL.Vec(IDL.Nat8),
+  'headers' : IDL.Vec(http_header),
 });
 
 export const idlService = IDL.Service({
@@ -138,6 +174,11 @@ export const idlService = IDL.Service({
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createBinder' : IDL.Func([IDL.Text, BinderTheme], [IDL.Text], []),
+  'createCheckoutSession' : IDL.Func(
+      [IDL.Vec(ShoppingItem), IDL.Text, IDL.Text],
+      [IDL.Text],
+      [],
+    ),
   'deleteBinder' : IDL.Func([IDL.Text], [], []),
   'deletePhotocard' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'getAdminContentSettings' : IDL.Func([], [AdminContentSettings], ['query']),
@@ -158,18 +199,28 @@ export const idlService = IDL.Service({
     ),
   'getLayoutPresets' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   'getMasterAdminKey' : IDL.Func([], [IDL.Opt(IDL.Text)], []),
+  'getStripePublishableKey' : IDL.Func([], [IDL.Text], ['query']),
+  'getStripeSessionStatus' : IDL.Func([IDL.Text], [StripeSessionStatus], []),
   'getSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),
-  'getUserLayout' : IDL.Func([IDL.Principal], [IDL.Text], ['query']),
+  'getUserLayout' : IDL.Func([], [IDL.Text], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
   'removeLayoutPreset' : IDL.Func([IDL.Text], [], []),
   'reorderCards' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'saveStripeKeys' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'setDefaultLayout' : IDL.Func([IDL.Text], [], []),
+  'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
+  'transform' : IDL.Func(
+      [TransformationInput],
+      [TransformationOutput],
+      ['query'],
+    ),
   'updateAdminContentSettings' : IDL.Func([AdminContentSettings], [], []),
   'updateBinderTheme' : IDL.Func([IDL.Text, BinderTheme], [], []),
   'updateMasterAdminKey' : IDL.Func([IDL.Text], [], []),
@@ -241,6 +292,13 @@ export const idlFactory = ({ IDL }) => {
     'cardFrameStyle' : IDL.Text,
     'textColor' : IDL.Text,
   });
+  const ShoppingItem = IDL.Record({
+    'productName' : IDL.Text,
+    'currency' : IDL.Text,
+    'quantity' : IDL.Nat,
+    'priceInCents' : IDL.Nat,
+    'productDescription' : IDL.Text,
+  });
   const AdminContentSettings = IDL.Record({
     'masterAdminKey' : IDL.Opt(IDL.Text),
     'background' : IDL.Opt(ExternalBlob),
@@ -282,6 +340,32 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'email' : IDL.Opt(IDL.Text),
     'avatarUrl' : IDL.Opt(IDL.Text),
+  });
+  const StripeSessionStatus = IDL.Variant({
+    'completed' : IDL.Record({
+      'userPrincipal' : IDL.Opt(IDL.Text),
+      'response' : IDL.Text,
+    }),
+    'failed' : IDL.Record({ 'error' : IDL.Text }),
+  });
+  const StripeConfiguration = IDL.Record({
+    'allowedCountries' : IDL.Vec(IDL.Text),
+    'secretKey' : IDL.Text,
+  });
+  const http_header = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
+  const http_request_result = IDL.Record({
+    'status' : IDL.Nat,
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(http_header),
+  });
+  const TransformationInput = IDL.Record({
+    'context' : IDL.Vec(IDL.Nat8),
+    'response' : http_request_result,
+  });
+  const TransformationOutput = IDL.Record({
+    'status' : IDL.Nat,
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(http_header),
   });
   
   return IDL.Service({
@@ -328,6 +412,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createBinder' : IDL.Func([IDL.Text, BinderTheme], [IDL.Text], []),
+    'createCheckoutSession' : IDL.Func(
+        [IDL.Vec(ShoppingItem), IDL.Text, IDL.Text],
+        [IDL.Text],
+        [],
+      ),
     'deleteBinder' : IDL.Func([IDL.Text], [], []),
     'deletePhotocard' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'getAdminContentSettings' : IDL.Func([], [AdminContentSettings], ['query']),
@@ -348,18 +437,28 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getLayoutPresets' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
     'getMasterAdminKey' : IDL.Func([], [IDL.Opt(IDL.Text)], []),
+    'getStripePublishableKey' : IDL.Func([], [IDL.Text], ['query']),
+    'getStripeSessionStatus' : IDL.Func([IDL.Text], [StripeSessionStatus], []),
     'getSubscriptionStatus' : IDL.Func([], [SubscriptionStatus], ['query']),
-    'getUserLayout' : IDL.Func([IDL.Principal], [IDL.Text], ['query']),
+    'getUserLayout' : IDL.Func([], [IDL.Text], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
     'removeLayoutPreset' : IDL.Func([IDL.Text], [], []),
     'reorderCards' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'saveStripeKeys' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'setDefaultLayout' : IDL.Func([IDL.Text], [], []),
+    'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
+    'transform' : IDL.Func(
+        [TransformationInput],
+        [TransformationOutput],
+        ['query'],
+      ),
     'updateAdminContentSettings' : IDL.Func([AdminContentSettings], [], []),
     'updateBinderTheme' : IDL.Func([IDL.Text, BinderTheme], [], []),
     'updateMasterAdminKey' : IDL.Func([IDL.Text], [], []),

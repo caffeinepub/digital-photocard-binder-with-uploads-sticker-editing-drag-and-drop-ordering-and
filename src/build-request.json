@@ -1,86 +1,88 @@
 {
   "kind": "build_request",
-  "title": "Fix binder grid layout not responding to custom selection",
+  "title": "Fix Binder View empty state and Admin portal Master Admin Key authentication",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the BinderViewScreen component to properly apply the user's selected grid layout (2x2, 3x3, 4x3, 5x4) instead of always displaying 3x3",
-      "target": "frontend",
+      "text": "Debug and fix the Binder View screen to correctly display photocard grids instead of showing empty state. Investigate data fetching, pagination logic, and card rendering in BinderViewScreen.tsx to identify why cards are not displaying.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-last"
         ],
         "quotes": [
-          "no it's not working. Only showing 3 x 3 and when I choose different grids it's not changing"
+          "The \"Binder View\" is not working (empty)"
         ]
       },
       "acceptanceCriteria": [
-        "When a user selects a different grid layout from settings, the binder view immediately reflects the new grid dimensions",
-        "The grid layout persists correctly across page navigations and browser refreshes",
-        "All grid options (2x2, 3x3, 4x3, 5x4) render with correct column and row counts"
+        "Binder View screen displays photocard grids when binders contain cards",
+        "Empty state is only shown when binder genuinely has no cards",
+        "Card images, overlays, and metadata render correctly",
+        "Page navigation works when multiple pages exist"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Verify that useGetUserLayout hook correctly fetches and returns the current user's layout preference",
-      "target": "frontend",
+      "text": "Fix Master Admin Key authentication in the Admin portal. Ensure MasterAdminKeyGate component correctly validates the stored master admin key from backend and grants access to admin features.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-last"
         ],
         "quotes": [
-          "when I choose different grids it's not changing"
+          "couldn't log in to Admin portal with my Master Admin Key"
         ]
       },
       "acceptanceCriteria": [
-        "The useGetUserLayout hook successfully retrieves the user's saved layout from backend",
-        "Layout changes made in ProfileSettingsDialog are immediately reflected in the hook's return value",
-        "Hook properly handles loading and error states"
+        "Master Admin Key input correctly validates against backend-stored key",
+        "Successful authentication unlocks all admin panel features",
+        "Authentication persists for 30 minutes as designed",
+        "Clear error messages shown for invalid or missing keys"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Ensure the dynamic CSS Grid implementation in BinderViewScreen correctly maps layout preset strings to grid-template-columns and grid-template-rows values",
+      "text": "Add error handling and logging to identify root causes of Binder View failures. Include diagnostics for data loading, query states, and render conditions.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-last"
         ]
       },
       "acceptanceCriteria": [
-        "Layout preset '2x2' correctly applies 2 columns and 2 rows",
-        "Layout preset '3x3' correctly applies 3 columns and 3 rows",
-        "Layout preset '4x3' correctly applies 4 columns and 3 rows",
-        "Layout preset '5x4' correctly applies 5 columns and 4 rows",
-        "Cards are positioned correctly within the grid for each layout"
+        "Console logs provide clear diagnostics when Binder View fails to load",
+        "Error states display helpful messages to users",
+        "Loading states are correctly managed during data fetching"
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Verify that useUpdateUserLayout mutation successfully saves the selected layout to the backend and invalidates relevant queries",
-      "target": "both",
+      "text": "Verify backend query endpoints for fetching binder cards and Master Admin Key validation are functioning correctly and returning expected data structures.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-last"
         ]
       },
       "acceptanceCriteria": [
-        "When a user selects a new layout in ProfileSettingsDialog, the mutation successfully updates the backend",
-        "After successful update, the useGetUserLayout query is invalidated and refetches",
-        "Error states from the mutation are properly handled and displayed to the user"
+        "Backend endpoints return cards in correct format for BinderViewScreen",
+        "Master Admin Key validation logic in backend works correctly",
+        "Query responses include all required fields (images, metadata, pagination)"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the backend schema or main.mo layout management logic",
-    "Maintain the existing layout preset options (2x2, 3x3, 4x3, 5x4)",
-    "Preserve the ProfileSettingsDialog layout selection UI"
+    "Do not modify authentication flow or Internet Identity integration",
+    "Preserve existing admin portal panel structure and layout",
+    "Maintain 30-minute admin session timeout behavior",
+    "Keep existing drag-and-drop reordering functionality intact"
   ],
   "nonGoals": [
-    "Adding new grid layout options beyond the existing presets",
-    "Changing the visual styling or theme of the binder view",
-    "Modifying the admin layout preset management functionality"
+    "Adding new admin features or panels",
+    "Changing binder UI design or layout",
+    "Modifying subscription or payment logic",
+    "Creating new card management features"
   ],
   "imageRequirements": {
     "required": [],

@@ -1,76 +1,90 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix binder grid layout not responding to custom selection",
+  "title": "Fix Binder View empty state and Admin portal Master Admin Key authentication",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix the BinderViewScreen component to properly apply the user's selected grid layout (2x2, 3x3, 4x3, 5x4) instead of always displaying 3x3",
+      "summary": "Debug and fix the Binder View screen to correctly display photocard grids instead of showing empty state",
       "acceptanceCriteria": [
-        "When a user selects a different grid layout from settings, the binder view immediately reflects the new grid dimensions",
-        "The grid layout persists correctly across page navigations and browser refreshes",
-        "All grid options (2x2, 3x3, 4x3, 5x4) render with correct column and row counts"
+        "Binder View screen displays photocard grids when binders contain cards",
+        "Empty state is only shown when binder genuinely has no cards",
+        "Card images, overlays, and metadata render correctly",
+        "Page navigation works when multiple pages exist"
       ],
       "file_operations": [
         {
           "path": "frontend/src/screens/BinderViewScreen.tsx",
           "operation": "modify",
-          "description": "Fix the grid template CSS generation to properly map layout presets to CSS Grid values. Update the component to use the layout value from useGetUserLayout hook instead of hardcoded 3x3. Ensure the grid-template-columns and grid-template-rows are dynamically set based on the actual layout string (e.g., '2x2' -> 'repeat(2, 1fr)' columns and 'repeat(2, 1fr)' rows). Add proper parsing logic to extract rows and columns from the layout string format."
+          "description": "Add comprehensive diagnostic logging to identify why cards are not rendering. Log the raw binders data from useGetBinders query, the selectedBinder object, cards array length, currentPageCards from useBinderPagination, and rendering conditions. Add error boundaries and loading state checks. Verify that cards.length > 0 condition correctly determines when to show the grid vs empty state. Ensure the DndContext and card mapping logic executes when cards exist."
+        },
+        {
+          "path": "frontend/src/hooks/useBinderPagination.ts",
+          "operation": "modify",
+          "description": "Add console logging to track pagination calculations: log cardsPerPage value, totalPages calculation, currentPage state, and the currentPageCards slice operation. Verify that the slice indices are correct and that cards are not being filtered out incorrectly. Log when page boundaries are hit to ensure navigation logic works correctly."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add diagnostic logging to useGetBinders hook to track query status, data fetching progress, and the structure of returned binder data. Log when the query succeeds, the number of binders returned, and a sample of card data structure. Add timeout error handling and verify that promiseTimeout is not prematurely terminating requests. Ensure cards array within each binder is properly populated."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Verify that useGetUserLayout hook correctly fetches and returns the current user's layout preference",
+      "summary": "Fix Master Admin Key authentication in the Admin portal to correctly validate stored key and grant access",
       "acceptanceCriteria": [
-        "The useGetUserLayout hook successfully retrieves the user's saved layout from backend",
-        "Layout changes made in ProfileSettingsDialog are immediately reflected in the hook's return value",
-        "Hook properly handles loading and error states"
+        "Master Admin Key input correctly validates against backend-stored key",
+        "Successful authentication unlocks all admin panel features",
+        "Authentication persists for 30 minutes as designed",
+        "Clear error messages shown for invalid or missing keys"
       ],
       "file_operations": [
         {
+          "path": "frontend/src/features/admin/MasterAdminKeyGate.tsx",
+          "operation": "modify",
+          "description": "Debug the key validation flow by adding detailed logging: log when getMasterAdminKey is called, the retrieved key value (masked for security), the user-submitted key (masked), and the comparison result. Verify the string comparison logic handles null/undefined cases correctly. Add error handling for backend query failures. Log the unlock state changes and session timeout behavior. Ensure the 30-minute inactivity timer correctly tracks user activity and maintains the unlocked state."
+        },
+        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Review and fix the useGetUserLayout hook implementation to ensure it correctly calls the backend getUserLayout method with the authenticated caller's principal. Verify the query key is unique and properly structured. Ensure the hook is enabled only when the actor is available and the user is authenticated. Add proper error handling for cases where the layout cannot be fetched."
+          "description": "Add diagnostic logging to useGetMasterAdminKey hook to verify the backend query executes correctly and returns the expected key format. Log query status, loading states, and any errors. Ensure the actor is properly initialized before calling getMasterAdminKey. Add retry logic if the query fails due to network issues."
+        },
+        {
+          "path": "frontend/src/screens/AdminDashboardScreen.tsx",
+          "operation": "modify",
+          "description": "Add logging to track when MasterAdminKeyGate mounts, when it grants access, and when tabs become enabled. Verify that the unlocked prop correctly propagates to child panels (ContentManagerPanel, UsersPanel, LayoutPresetsPanel, PaymentSettingsPanel). Log any rendering issues that might prevent admin features from displaying after successful authentication."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Ensure the dynamic CSS Grid implementation in BinderViewScreen correctly maps layout preset strings to grid-template-columns and grid-template-rows values",
+      "summary": "Add error handling and logging to identify root causes of Binder View failures with clear diagnostics",
       "acceptanceCriteria": [
-        "Layout preset '2x2' correctly applies 2 columns and 2 rows",
-        "Layout preset '3x3' correctly applies 3 columns and 3 rows",
-        "Layout preset '4x3' correctly applies 4 columns and 3 rows",
-        "Layout preset '5x4' correctly applies 5 columns and 4 rows",
-        "Cards are positioned correctly within the grid for each layout"
+        "Console logs provide clear diagnostics when Binder View fails to load",
+        "Error states display helpful messages to users",
+        "Loading states are correctly managed during data fetching"
       ],
       "file_operations": [
         {
           "path": "frontend/src/screens/BinderViewScreen.tsx",
           "operation": "modify",
-          "description": "Implement a helper function that parses layout strings (format 'COLSxROWS') and returns an object with columns and rows values. Apply these values to the grid container's inline styles using grid-template-columns: repeat(cols, 1fr) and grid-template-rows: repeat(rows, 1fr). Ensure the grid gap and card sizing adapt correctly to different layouts. Test all four layout presets to verify correct rendering."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Verify that useUpdateUserLayout mutation successfully saves the selected layout to the backend and invalidates relevant queries",
-      "acceptanceCriteria": [
-        "When a user selects a new layout in ProfileSettingsDialog, the mutation successfully updates the backend",
-        "After successful update, the useGetUserLayout query is invalidated and refetches",
-        "Error states from the mutation are properly handled and displayed to the user"
-      ],
-      "file_operations": [
+          "description": "Wrap the main rendering logic in error boundaries with try-catch blocks. Add user-friendly error messages that display when data fetching fails, when selectedBinder is undefined, or when card rendering fails. Show loading spinner with status text during data fetching. Add a retry button that refetches binders data. Log all error objects with full stack traces to console for debugging."
+        },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Review and fix the useUpdateUserLayout mutation hook to ensure it correctly calls the backend updateUserLayout method with the new layout value. Add proper onSuccess callback that invalidates the 'userLayout' query key to trigger a refetch. Ensure the mutation includes proper error handling and returns meaningful error messages to the UI."
+          "description": "Enhance error handling in useGetBinders query with structured error logging. Log query lifecycle events: initiated, pending, success, error. Capture and log specific error types (network failures, timeout, backend errors). Ensure error messages are exposed to consuming components for display to users."
         },
         {
-          "path": "frontend/src/features/auth/ProfileSettingsDialog.tsx",
+          "path": "frontend/src/components/system/GlobalLoadingGate.tsx",
           "operation": "modify",
-          "description": "Verify that the layout selection dropdown correctly passes the selected layout value to the useUpdateUserLayout mutation. Ensure the mutation's loading and error states are properly displayed to the user. Add visual feedback (success toast or indication) when the layout is successfully updated. Confirm that the dialog shows the current layout as selected when opened."
+          "description": "Add enhanced error state rendering that displays specific error messages rather than generic text. Include component stack information in error logs. Add a detailed retry mechanism that logs retry attempts. Ensure loading states correctly reflect the status of all dependent queries (actor, profile, binders)."
+        },
+        {
+          "path": "frontend/src/hooks/useLoadingDiagnostics.ts",
+          "operation": "modify",
+          "description": "Lower the diagnostic threshold or add more granular logging to capture loading bottlenecks earlier. Log the status of actor initialization, profile fetching, and binders query separately with timestamps. Add warnings when any step exceeds expected duration. Ensure diagnostics help identify which specific step is blocking the Binder View screen from loading."
         }
       ]
     }

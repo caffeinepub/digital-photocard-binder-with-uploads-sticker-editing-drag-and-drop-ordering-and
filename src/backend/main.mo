@@ -1,24 +1,31 @@
-import Array "mo:core/Array";
-import Text "mo:core/Text";
 import Map "mo:core/Map";
-import Runtime "mo:core/Runtime";
+import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import List "mo:core/List";
 import Principal "mo:core/Principal";
-import Migration "migration";
+import Iter "mo:core/Iter";
+import Runtime "mo:core/Runtime";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Iter "mo:core/Iter";
+import OutCall "http-outcalls/outcall";
+import Stripe "stripe/stripe";
 
-// Migration spec
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
   include MixinStorage();
+
+  var stripeConfiguration : ?Stripe.StripeConfiguration = null;
+
+  type StripeKeys = {
+    publishableKey : Text;
+    secretKey : Text;
+  };
+
+  let stripeKeysStore = Map.empty<Text, StripeKeys>();
 
   public type SubscriptionStatus = {
     #free;
@@ -172,7 +179,50 @@ actor {
 
   let userSettings = Map.empty<Principal, UserSettings>();
 
-  // Analytics and Admin APIs
+  public shared ({ caller }) func saveStripeKeys(publishableKey : Text, secretKey : Text) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can save Stripe keys");
+    };
+
+    let stripeKeyEntry : StripeKeys = {
+      publishableKey;
+      secretKey;
+    };
+
+    stripeKeysStore.add("singleton", stripeKeyEntry);
+
+    let allowedCountries = [
+      "US", "CA", "GB", "DE", "FR", "ES", "IT", "NL", "BE", "AT", "IE", "LU", "PT", "FI", "SE", "DK", "NO", "IS", "CH", "LIE", "MC", "SM", "VA", "AD", "MT", "GR", "CY", "EE", "LT", "LV", "PL", "CZ", "SK", "HU", "SI", "BG", "RO", "HR", "RU",
+    ];
+
+    stripeConfiguration := ?{
+      secretKey;
+      allowedCountries;
+    };
+  };
+
+  public query func getStripePublishableKey() : async Text {
+    getStripeKeys().publishableKey;
+  };
+
+  func getStripeKeys() : StripeKeys {
+    switch (stripeKeysStore.get("singleton")) {
+      case (null) { Runtime.trap("Initialization: Stripe must be configured first") };
+      case (?keys) { keys };
+    };
+  };
+
+  public query ({ caller }) func isStripeConfigured() : async Bool {
+    stripeConfiguration != null;
+  };
+
+  public shared ({ caller }) func setStripeConfiguration(config : Stripe.StripeConfiguration) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can save Stripe configuration");
+    };
+    stripeConfiguration := ?config;
+  };
+
   public query ({ caller }) func getAllUsers() : async [UserAnalytics] {
     if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can view users");
@@ -308,6 +358,9 @@ actor {
   };
 
   public query ({ caller }) func getSubscriptionStatus() : async SubscriptionStatus {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view subscription status");
+    };
     switch (subscriptionStatus.get(caller)) {
       case (null) { #free };
       case (?status) { status };
@@ -315,6 +368,9 @@ actor {
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
+    };
     userProfiles.get(caller);
   };
 
@@ -326,10 +382,17 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
     userProfiles.add(caller, profile);
   };
 
   public shared ({ caller }) func createBinder(name : Text, theme : BinderTheme) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create binders");
+    };
+
     let userData = getOrCreateUser(caller);
 
     let status = switch (subscriptionStatus.get(caller)) {
@@ -354,6 +417,9 @@ actor {
   };
 
   public query ({ caller }) func getBinders() : async [BinderView] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view binders");
+    };
     let userData = users.get(caller);
     switch (userData) {
       case (null) { [] };
@@ -370,6 +436,10 @@ actor {
     rarity : CardRarity,
     condition : CardCondition,
   ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add photocards");
+    };
+
     let userData = users.get(caller);
     switch (userData) {
       case (null) { Runtime.trap("Unauthorized: Binder not found") };
@@ -408,6 +478,10 @@ actor {
     rarity : CardRarity,
     condition : CardCondition,
   ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update photocards");
+    };
+
     let userData = users.get(caller);
     switch (userData) {
       case (null) { Runtime.trap("Unauthorized: Binder not found") };
@@ -442,6 +516,10 @@ actor {
   };
 
   public shared ({ caller }) func deletePhotocard(binderId : Text, cardId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete photocards");
+    };
+
     let userData = users.get(caller);
     switch (userData) {
       case (null) { Runtime.trap("Unauthorized: Binder not found") };
@@ -459,6 +537,10 @@ actor {
   };
 
   public shared ({ caller }) func deleteBinder(binderId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete binders");
+    };
+
     let userData = users.get(caller);
     switch (userData) {
       case (null) { Runtime.trap("Unauthorized: Binder not found") };
@@ -472,6 +554,10 @@ actor {
   };
 
   public shared ({ caller }) func updateBinderTheme(binderId : Text, newTheme : BinderTheme) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update binder themes");
+    };
+
     let userData = users.get(caller);
     switch (userData) {
       case (null) { Runtime.trap("Unauthorized: Binder not found") };
@@ -489,6 +575,10 @@ actor {
   };
 
   public shared ({ caller }) func reorderCards(binderId : Text, newOrder : [Text]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can reorder cards");
+    };
+
     let userData = users.get(caller);
     switch (userData) {
       case (null) { Runtime.trap("Unauthorized: Binder not found") };
@@ -513,8 +603,6 @@ actor {
       };
     };
   };
-
-  // Grid Layout Admin Functions
 
   public shared ({ caller }) func addLayoutPreset(layout : Text) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
@@ -542,17 +630,18 @@ actor {
     defaultLayout := layout;
   };
 
-  // User Layout Preferences
-
-  public query ({ caller }) func getLayoutPresets() : async [Text] {
+  public query func getLayoutPresets() : async [Text] {
     layoutPresets.keys().toArray();
   };
 
-  public query ({ caller }) func getDefaultLayout() : async Text {
+  public query func getDefaultLayout() : async Text {
     defaultLayout;
   };
 
-  public query ({ caller }) func getUserLayout(caller : Principal) : async Text {
+  public query ({ caller }) func getUserLayout() : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view layout preferences");
+    };
     switch (userSettings.get(caller)) {
       case (null) { defaultLayout };
       case (?settings) { settings.gridLayout };
@@ -560,6 +649,10 @@ actor {
   };
 
   public shared ({ caller }) func updateUserLayout(layout : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update layout preferences");
+    };
+
     if (not layoutPresets.containsKey(layout)) {
       Runtime.trap("Layout must be a valid preset");
     };
@@ -576,6 +669,24 @@ actor {
     };
   };
 
+  public query func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {
+    OutCall.transform(input);
+  };
+
+  public shared ({ caller }) func getStripeSessionStatus(sessionId : Text) : async Stripe.StripeSessionStatus {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can check session status");
+    };
+    await Stripe.getSessionStatus(getStripeConfiguration(), sessionId, transform);
+  };
+
+  public shared ({ caller }) func createCheckoutSession(items : [Stripe.ShoppingItem], successUrl : Text, cancelUrl : Text) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create checkout sessions");
+    };
+    await Stripe.createCheckoutSession(getStripeConfiguration(), caller, items, successUrl, cancelUrl, transform);
+  };
+
   func getOrCreateUser(user : Principal) : UserData {
     switch (users.get(user)) {
       case (null) {
@@ -586,6 +697,15 @@ actor {
         newUser;
       };
       case (?existing) { existing };
+    };
+  };
+
+  func getStripeConfiguration() : Stripe.StripeConfiguration {
+    switch (stripeConfiguration) {
+      case (null) {
+        Runtime.trap("Stripe needs to be first configured");
+      };
+      case (?config) { config };
     };
   };
 };

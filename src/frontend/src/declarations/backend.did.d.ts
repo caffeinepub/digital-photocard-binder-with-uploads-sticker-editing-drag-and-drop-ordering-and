@@ -56,9 +56,33 @@ export interface Photocard {
   'position' : CardPosition,
   'condition' : CardCondition,
 }
+export interface ShoppingItem {
+  'productName' : string,
+  'currency' : string,
+  'quantity' : bigint,
+  'priceInCents' : bigint,
+  'productDescription' : string,
+}
+export interface StripeConfiguration {
+  'allowedCountries' : Array<string>,
+  'secretKey' : string,
+}
+export type StripeSessionStatus = {
+    'completed' : { 'userPrincipal' : [] | [string], 'response' : string }
+  } |
+  { 'failed' : { 'error' : string } };
 export type SubscriptionStatus = { 'pro' : null } |
   { 'free' : null };
 export type Time = bigint;
+export interface TransformationInput {
+  'context' : Uint8Array,
+  'response' : http_request_result,
+}
+export interface TransformationOutput {
+  'status' : bigint,
+  'body' : Uint8Array,
+  'headers' : Array<http_header>,
+}
 export interface UserAnalytics {
   'binderCount' : bigint,
   'principal' : Principal,
@@ -86,6 +110,12 @@ export interface _CaffeineStorageRefillInformation {
 export interface _CaffeineStorageRefillResult {
   'success' : [] | [boolean],
   'topped_up_amount' : [] | [bigint],
+}
+export interface http_header { 'value' : string, 'name' : string }
+export interface http_request_result {
+  'status' : bigint,
+  'body' : Uint8Array,
+  'headers' : Array<http_header>,
 }
 export interface _SERVICE {
   '_caffeineStorageBlobIsLive' : ActorMethod<[Uint8Array], boolean>,
@@ -119,6 +149,10 @@ export interface _SERVICE {
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createBinder' : ActorMethod<[string, BinderTheme], string>,
+  'createCheckoutSession' : ActorMethod<
+    [Array<ShoppingItem>, string, string],
+    string
+  >,
   'deleteBinder' : ActorMethod<[string], undefined>,
   'deletePhotocard' : ActorMethod<[string, string], undefined>,
   'getAdminContentSettings' : ActorMethod<[], AdminContentSettings>,
@@ -131,14 +165,20 @@ export interface _SERVICE {
   'getFilteredUsers' : ActorMethod<[string], Array<UserAnalytics>>,
   'getLayoutPresets' : ActorMethod<[], Array<string>>,
   'getMasterAdminKey' : ActorMethod<[], [] | [string]>,
+  'getStripePublishableKey' : ActorMethod<[], string>,
+  'getStripeSessionStatus' : ActorMethod<[string], StripeSessionStatus>,
   'getSubscriptionStatus' : ActorMethod<[], SubscriptionStatus>,
-  'getUserLayout' : ActorMethod<[Principal], string>,
+  'getUserLayout' : ActorMethod<[], string>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'isStripeConfigured' : ActorMethod<[], boolean>,
   'removeLayoutPreset' : ActorMethod<[string], undefined>,
   'reorderCards' : ActorMethod<[string, Array<string>], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'saveStripeKeys' : ActorMethod<[string, string], undefined>,
   'setDefaultLayout' : ActorMethod<[string], undefined>,
+  'setStripeConfiguration' : ActorMethod<[StripeConfiguration], undefined>,
+  'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'updateAdminContentSettings' : ActorMethod<[AdminContentSettings], undefined>,
   'updateBinderTheme' : ActorMethod<[string, BinderTheme], undefined>,
   'updateMasterAdminKey' : ActorMethod<[string], undefined>,

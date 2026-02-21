@@ -9,11 +9,12 @@ import {
   shouldShowGlint,
 } from '../features/cards/overlayAssets';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Settings, GripVertical, Pencil, ChevronLeft, ChevronRight, BookHeart, FileDown } from 'lucide-react';
+import { ArrowLeft, Plus, Settings, GripVertical, Pencil, ChevronLeft, ChevronRight, BookHeart, FileDown, AlertCircle } from 'lucide-react';
 import BinderFrame from '../components/binder/BinderFrame';
 import BinderRingsOverlay from '../components/binder/BinderRingsOverlay';
 import PageSwipeContainer from '../components/binder/PageSwipeContainer';
 import BinderPdfExportDialog from '../components/binder/BinderPdfExportDialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { Photocard } from '../backend';
 
 interface BinderViewScreenProps {
@@ -31,11 +32,30 @@ export default function BinderViewScreen({
   onEditCard,
   onSettings,
 }: BinderViewScreenProps) {
-  const { data: binders = [] } = useGetBinders();
-  const { data: userLayout, isLoading: userLayoutLoading } = useGetUserLayout();
-  const { data: defaultLayout, isLoading: defaultLayoutLoading } = useGetDefaultLayout();
+  const { data: binders = [], isLoading: bindersLoading, error: bindersError, refetch: refetchBinders } = useGetBinders();
+  const { data: userLayout, isLoading: userLayoutLoading, error: userLayoutError } = useGetUserLayout();
+  const { data: defaultLayout, isLoading: defaultLayoutLoading, error: defaultLayoutError } = useGetDefaultLayout();
   const { mutate: reorderCards } = useReorderCards();
+  
+  console.log('[BinderViewScreen] Render state:', {
+    binderId,
+    bindersCount: binders.length,
+    bindersLoading,
+    bindersError: bindersError?.message,
+    userLayout,
+    userLayoutLoading,
+    defaultLayout,
+    defaultLayoutLoading,
+  });
+
   const binder = binders.find((b) => b.id === binderId);
+  
+  console.log('[BinderViewScreen] Selected binder:', {
+    found: !!binder,
+    binderId,
+    binderName: binder?.name,
+    cardsCount: binder?.cards.length,
+  });
 
   const [cards, setCards] = useState<Photocard[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -50,6 +70,13 @@ export default function BinderViewScreen({
   const rows = parseInt(rowsStr, 10) || 3;
   const cardsPerPage = cols * rows;
 
+  console.log('[BinderViewScreen] Layout configuration:', {
+    layout,
+    cols,
+    rows,
+    cardsPerPage,
+  });
+
   const {
     currentPage,
     totalPages,
@@ -60,9 +87,25 @@ export default function BinderViewScreen({
     hasPrev,
   } = useBinderPagination(cards, cardsPerPage);
 
+  console.log('[BinderViewScreen] Pagination state:', {
+    totalCards: cards.length,
+    currentPage,
+    totalPages,
+    currentCardsCount: currentCards.length,
+    hasNext,
+    hasPrev,
+  });
+
   useEffect(() => {
     if (binder) {
+      console.log('[BinderViewScreen] Setting cards from binder:', {
+        binderId: binder.id,
+        cardsCount: binder.cards.length,
+      });
       setCards(binder.cards);
+    } else {
+      console.log('[BinderViewScreen] No binder found, clearing cards');
+      setCards([]);
     }
   }, [binder]);
 
@@ -101,7 +144,50 @@ export default function BinderViewScreen({
     });
   };
 
+  // Show loading state while data is being fetched
+  if (bindersLoading || userLayoutLoading || defaultLayoutLoading) {
+    console.log('[BinderViewScreen] Showing loading state');
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-center py-24">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-binder-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-binder-text-muted">Loading binder...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state with retry option
+  if (bindersError || userLayoutError || defaultLayoutError) {
+    const errorMessage = bindersError?.message || userLayoutError?.message || defaultLayoutError?.message || 'Unknown error';
+    console.error('[BinderViewScreen] Error state:', errorMessage);
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="py-16">
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-5 w-5" />
+            <AlertDescription>
+              <strong className="block mb-2">Failed to load binder</strong>
+              <p className="text-sm mb-4">{errorMessage}</p>
+            </AlertDescription>
+          </Alert>
+          <div className="flex gap-3 justify-center">
+            <Button onClick={() => refetchBinders()} className="rounded-xl bg-binder-accent hover:bg-binder-accent-hover">
+              Retry
+            </Button>
+            <Button onClick={onBack} variant="outline" className="rounded-xl">
+              Go Back
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!binder) {
+    console.log('[BinderViewScreen] Binder not found, showing not found message');
     return (
       <div className="text-center py-16">
         <p className="text-binder-text-muted">Binder not found</p>
@@ -112,8 +198,7 @@ export default function BinderViewScreen({
     );
   }
 
-  // Show loading state while layout is being fetched
-  const isLayoutLoading = userLayoutLoading || defaultLayoutLoading;
+  console.log('[BinderViewScreen] Rendering binder view with', cards.length, 'cards');
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -192,10 +277,6 @@ export default function BinderViewScreen({
                   <Plus className="w-5 h-5 mr-2" />
                   Add Your First Card
                 </Button>
-              </div>
-            ) : isLayoutLoading ? (
-              <div className="flex items-center justify-center py-24">
-                <p className="text-binder-text-muted">Loading layout...</p>
               </div>
             ) : (
               <div
@@ -296,7 +377,7 @@ export default function BinderViewScreen({
           </PageSwipeContainer>
         </BinderFrame>
 
-        {cards.length > 0 && (
+        {cards.length > 0 && totalPages > 1 && (
           <div className="flex items-center justify-center gap-4 mt-6">
             <Button
               onClick={prevPage}

@@ -21,6 +21,11 @@ export interface BinderView {
     cards: Array<Photocard>;
     name: string;
 }
+export interface TransformationOutput {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
+}
 export type Time = bigint;
 export interface Photocard {
     id: string;
@@ -42,9 +47,29 @@ export interface BinderTheme {
     cardFrameStyle: string;
     textColor: string;
 }
+export interface http_header {
+    value: string;
+    name: string;
+}
+export interface http_request_result {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
+}
 export interface CardPosition {
     page: bigint;
     slot: bigint;
+}
+export interface ShoppingItem {
+    productName: string;
+    currency: string;
+    quantity: bigint;
+    priceInCents: bigint;
+    productDescription: string;
+}
+export interface TransformationInput {
+    context: Uint8Array;
+    response: http_request_result;
 }
 export interface AdminContentSettings {
     masterAdminKey?: string;
@@ -59,6 +84,22 @@ export interface UserAnalytics {
     email?: string;
     subscriptionStatus: SubscriptionStatus;
     cardCount: bigint;
+}
+export type StripeSessionStatus = {
+    __kind__: "completed";
+    completed: {
+        userPrincipal?: string;
+        response: string;
+    };
+} | {
+    __kind__: "failed";
+    failed: {
+        error: string;
+    };
+};
+export interface StripeConfiguration {
+    allowedCountries: Array<string>;
+    secretKey: string;
 }
 export interface UserProfile {
     displayName?: string;
@@ -95,6 +136,7 @@ export interface backendInterface {
     addPhotocard(binderId: string, name: string, image: ExternalBlob, position: CardPosition, quantity: bigint, rarity: CardRarity, condition: CardCondition): Promise<string>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createBinder(name: string, theme: BinderTheme): Promise<string>;
+    createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
     deleteBinder(binderId: string): Promise<void>;
     deletePhotocard(binderId: string, cardId: string): Promise<void>;
     getAdminContentSettings(): Promise<AdminContentSettings>;
@@ -107,14 +149,20 @@ export interface backendInterface {
     getFilteredUsers(filter: string): Promise<Array<UserAnalytics>>;
     getLayoutPresets(): Promise<Array<string>>;
     getMasterAdminKey(): Promise<string | null>;
+    getStripePublishableKey(): Promise<string>;
+    getStripeSessionStatus(sessionId: string): Promise<StripeSessionStatus>;
     getSubscriptionStatus(): Promise<SubscriptionStatus>;
-    getUserLayout(caller: Principal): Promise<string>;
+    getUserLayout(): Promise<string>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    isStripeConfigured(): Promise<boolean>;
     removeLayoutPreset(layout: string): Promise<void>;
     reorderCards(binderId: string, newOrder: Array<string>): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveStripeKeys(publishableKey: string, secretKey: string): Promise<void>;
     setDefaultLayout(layout: string): Promise<void>;
+    setStripeConfiguration(config: StripeConfiguration): Promise<void>;
+    transform(input: TransformationInput): Promise<TransformationOutput>;
     updateAdminContentSettings(settings: AdminContentSettings): Promise<void>;
     updateBinderTheme(binderId: string, newTheme: BinderTheme): Promise<void>;
     updateMasterAdminKey(newKey: string): Promise<void>;

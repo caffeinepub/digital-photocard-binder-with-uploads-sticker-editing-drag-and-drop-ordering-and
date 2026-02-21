@@ -17,9 +17,16 @@ export default function MasterAdminKeyGate({ children }: MasterAdminKeyGateProps
   const [keyInput, setKeyInput] = useState('');
   const [unlocked, setUnlocked] = useState(false);
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [lastActivity, setLastActivity] = useState(Date.now());
 
   const verifyMutation = useVerifyMasterAdminKey();
+
+  console.log('[MasterAdminKeyGate] Component state:', {
+    unlocked,
+    error,
+    isPending: verifyMutation.isPending,
+  });
 
   // Track user activity
   const handleActivity = useCallback(() => {
@@ -30,6 +37,7 @@ export default function MasterAdminKeyGate({ children }: MasterAdminKeyGateProps
   useEffect(() => {
     if (!unlocked) return;
 
+    console.log('[MasterAdminKeyGate] Setting up activity listeners');
     const events = ['mousedown', 'keydown', 'touchstart', 'scroll', 'mousemove'];
     events.forEach(event => {
       window.addEventListener(event, handleActivity);
@@ -46,12 +54,15 @@ export default function MasterAdminKeyGate({ children }: MasterAdminKeyGateProps
   useEffect(() => {
     if (!unlocked) return;
 
+    console.log('[MasterAdminKeyGate] Starting inactivity timeout monitor');
     const interval = setInterval(() => {
       const timeSinceLastActivity = Date.now() - lastActivity;
       if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
+        console.log('[MasterAdminKeyGate] Inactivity timeout reached, locking portal');
         setUnlocked(false);
         setKeyInput('');
         setError(false);
+        setErrorMessage('');
       }
     }, 60000); // Check every minute
 
@@ -61,26 +72,45 @@ export default function MasterAdminKeyGate({ children }: MasterAdminKeyGateProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(false);
+    setErrorMessage('');
+
+    console.log('[MasterAdminKeyGate] Submitting key for verification, length:', keyInput.length);
+
+    if (!keyInput.trim()) {
+      console.log('[MasterAdminKeyGate] Empty key input');
+      setError(true);
+      setErrorMessage('Please enter a master admin key');
+      return;
+    }
 
     try {
       const isValid = await verifyMutation.mutateAsync(keyInput);
+      console.log('[MasterAdminKeyGate] Verification result:', isValid);
+      
       if (isValid) {
+        console.log('[MasterAdminKeyGate] Key verified successfully, unlocking portal');
         setUnlocked(true);
         setLastActivity(Date.now());
       } else {
+        console.log('[MasterAdminKeyGate] Key verification failed');
         setError(true);
+        setErrorMessage('Incorrect master key. Please try again.');
         setKeyInput('');
       }
     } catch (err) {
+      console.error('[MasterAdminKeyGate] Key verification error:', err);
       setError(true);
+      setErrorMessage('Failed to verify key. Please check your connection and try again.');
       setKeyInput('');
-      console.error('Key verification error:', err);
     }
   };
 
   if (unlocked) {
+    console.log('[MasterAdminKeyGate] Portal unlocked, rendering children');
     return <>{children(true)}</>;
   }
+
+  console.log('[MasterAdminKeyGate] Portal locked, showing key input form');
 
   return (
     <div className="max-w-md mx-auto mt-12">
@@ -100,7 +130,7 @@ export default function MasterAdminKeyGate({ children }: MasterAdminKeyGateProps
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>Incorrect master key. Please try again.</AlertDescription>
+              <AlertDescription>{errorMessage || 'Incorrect master key. Please try again.'}</AlertDescription>
             </Alert>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -116,6 +146,9 @@ export default function MasterAdminKeyGate({ children }: MasterAdminKeyGateProps
                 required
                 disabled={verifyMutation.isPending}
               />
+              <p className="text-xs text-muted-foreground">
+                Default key: 7vX#2kL!m9$Q (change this in Content Manager after unlocking)
+              </p>
             </div>
             <Button type="submit" className="w-full" disabled={verifyMutation.isPending}>
               {verifyMutation.isPending ? (

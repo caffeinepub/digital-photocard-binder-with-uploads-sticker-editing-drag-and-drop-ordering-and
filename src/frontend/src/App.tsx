@@ -145,7 +145,7 @@ export default function App() {
         />
       )}
       {currentScreen.type === 'admin' && isSuperuser && (
-        <AdminDashboardScreen onBack={handleNavigateHome} />
+        <AdminDashboardScreen />
       )}
     </AppLayout>
   );

@@ -21,7 +21,14 @@ export default function GlobalLoadingGate({
   loadingMessage = 'Loading your binders...',
   errorTitle = 'Unable to load your data',
 }: GlobalLoadingGateProps) {
+  console.log('[GlobalLoadingGate] State:', {
+    isLoading,
+    hasError: !!error,
+    errorMessage: error?.message,
+  });
+
   if (error) {
+    console.error('[GlobalLoadingGate] Displaying error state:', error);
     return (
       <div className="min-h-screen flex items-center justify-center bg-binder-dark px-4">
         <div className="max-w-md w-full">
@@ -32,6 +39,12 @@ export default function GlobalLoadingGate({
               <p className="text-sm mb-4">
                 {error.message || 'An unexpected error occurred. Please try again.'}
               </p>
+              <details className="text-xs opacity-70 mt-2">
+                <summary className="cursor-pointer">Technical details</summary>
+                <pre className="mt-2 p-2 bg-black/20 rounded overflow-auto">
+                  {error.stack || error.toString()}
+                </pre>
+              </details>
             </AlertDescription>
           </Alert>
           
@@ -54,15 +67,20 @@ export default function GlobalLoadingGate({
   }
 
   if (isLoading) {
+    console.log('[GlobalLoadingGate] Displaying loading state');
     return (
       <div className="min-h-screen flex items-center justify-center bg-binder-dark">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-binder-accent mx-auto mb-4" />
           <p className="text-binder-text-muted">{loadingMessage}</p>
+          <p className="text-xs text-binder-text-muted/60 mt-2">
+            This may take a few moments...
+          </p>
         </div>
       </div>
     );
   }
 
+  console.log('[GlobalLoadingGate] No loading or error, rendering children');
   return null;
 }
